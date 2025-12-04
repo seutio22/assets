@@ -2,13 +2,17 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# Se o Root Directory for 'frontend', o contexto já é frontend/
-# Copiar arquivos do contexto atual
-COPY package*.json ./
-COPY . .
+# Copiar package.json primeiro (para cache de dependências)
+COPY package.json package-lock.json* ./
+
+# Debug: verificar se package.json foi copiado
+RUN ls -la package.json || (echo "ERRO: package.json não encontrado!" && ls -la && exit 1)
 
 # Instalar dependências
 RUN npm install
+
+# Copiar resto dos arquivos
+COPY . .
 
 # Build da aplicação
 RUN npm run build
