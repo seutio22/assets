@@ -2,14 +2,14 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# Copiar arquivos de dependências
-COPY package*.json ./
+# Copiar arquivos de dependências do diretório frontend
+COPY frontend/package*.json ./
 
 # Instalar dependências
 RUN npm install
 
-# Copiar código fonte
-COPY . .
+# Copiar código fonte do diretório frontend
+COPY frontend/ .
 
 # Build da aplicação
 RUN npm run build
