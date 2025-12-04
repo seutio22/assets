@@ -1,0 +1,34 @@
+========================================
+  COMANDOS PARA EXECUTAR NO POWERSHELL
+========================================
+
+Copie e cole cada comando abaixo no PowerShell (na pasta backend):
+
+1. Remover pasta problematica:
+   Remove-Item -Recurse -Force prisma\migrations\add_implantacao_module -ErrorAction SilentlyContinue
+
+2. Deletar banco de dados:
+   Remove-Item prisma\dev.db -ErrorAction SilentlyContinue
+
+3. Regenerar Prisma Client:
+   npm run prisma:generate
+
+4. Aplicar migrations:
+   npx prisma migrate dev
+
+5. Popular dados:
+   npm run prisma:seed
+
+6. Verificar:
+   npm run check:permissions
+
+========================================
+OU EXECUTE O SCRIPT AUTOMATICO:
+========================================
+
+.\fix-all.ps1
+
+ou
+
+npm run fix:all
+

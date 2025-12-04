@@ -1,0 +1,28 @@
+========================================
+  COMANDOS PARA EXECUTAR NO POWERSHELL
+========================================
+
+Copie e cole cada comando abaixo, UM POR VEZ:
+
+1. Navegar para a pasta backend:
+   cd C:\Users\Larissa\EDGE2.0\backend
+
+2. Regenerar Prisma Client:
+   npm run prisma:generate
+
+3. Aplicar migrations:
+   npx prisma migrate dev
+
+4. Popular dados:
+   npm run prisma:seed
+
+5. Verificar se funcionou:
+   npm run check:permissions
+
+========================================
+IMPORTANTE:
+- Execute na pasta BACKEND
+- Aguarde cada comando terminar antes do próximo
+- Se der erro, me envie a mensagem completa
+========================================
+

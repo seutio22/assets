@@ -1,0 +1,27 @@
+========================================
+  IMPORTANTE: Execute na pasta BACKEND
+========================================
+
+O erro que você está vendo acontece porque o npm
+está sendo executado na pasta raiz do projeto.
+
+SOLUÇÃO:
+
+1. Abra o PowerShell
+2. Navegue até a pasta backend:
+   cd C:\Users\Larissa\EDGE2.0\backend
+
+3. Execute os comandos:
+   npm run fix:direct
+
+OU execute um por um:
+
+   npm run prisma:generate
+   npx prisma migrate dev
+   npm run prisma:seed
+
+========================================
+Verificar se funcionou:
+   npm run check:permissions
+========================================
+

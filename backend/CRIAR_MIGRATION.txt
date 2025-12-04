@@ -1,0 +1,15 @@
+========================================
+  CRIAR MIGRATION DE PERMISSÕES
+========================================
+
+Execute este comando:
+
+npx prisma migrate dev --name add_permissions_system
+
+OU se der erro de banco bloqueado, aguarde 10 segundos e tente:
+
+timeout /t 10
+npx prisma migrate dev --name add_permissions_system
+
+========================================
+

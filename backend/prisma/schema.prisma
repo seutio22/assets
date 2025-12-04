@@ -1,0 +1,1306 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Tenant {
+  id        String   @id @default(uuid())
+  name      String
+  domain    String?  @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users                            User[]
+  gruposEconomicos                 GrupoEconomico[]
+  empresas                         Empresa[]
+  contatos                         Contato[]
+  clientes                         Cliente[]
+  enderecos                        Endereco[]
+  fornecedores                     Fornecedor[]
+  enderecosFornecedores            EnderecoFornecedor[]
+  contatosFornecedores             ContatoFornecedor[]
+  apolices                         Apolice[]
+  subEstipulantes                  SubEstipulante[]
+  enderecosSubEstipulante          EnderecoSubEstipulante[]
+  contatosSubEstipulante           ContatoSubEstipulante[]
+  planos                           Plano[]
+  coberturas                       Cobertura[]
+  coberturaItems                   CoberturaItem[]
+  relacionamentos                  Relacionamento[]
+  reembolsosPlano                  ReembolsoPlano[]
+  coparticipacoesPlano             CoparticipacaoPlano[]
+  elegibilidades                   Elegibilidade[]
+  enderecosApolice                 EnderecoApolice[]
+  contatosApolice                  ContatoApolice[]
+  comissionamentosApolice          ComissionamentoApolice[]
+  feesApolice                      FeeApolice[]
+  reajustes                        Reajuste[]
+  dadosConfiguracoes               ConfiguracaoCampo[]
+  dadosDinamicos                   DadoDinamico[]
+  documentosApolice                DocumentoApolice[]
+  servicosApolice                  ServicoApolice[]
+  agrupamentosFaturamento          AgrupamentoFaturamento[]
+  chamadosImplantacao              ChamadoImplantacao[]
+  implantacoes                     Implantacao[]
+  cronogramaItens                  CronogramaItem[]
+  solicitacoes                     Solicitacao[]
+  placements                       Placement[]
+  demandas                         Demanda[]
+  anexosSolicitacao                AnexoSolicitacao[]
+  historicosSolicitacao            HistoricoSolicitacao[]
+  anexosPlacement                  AnexoPlacement[]
+  historicosPlacement              HistoricoPlacement[]
+  itensPlacement                   ItemPlacement[]
+  historicosImplantacao            HistoricoImplantacao[]
+  usuariosCliente                  UsuarioCliente[]
+  usuariosClienteApolices          UsuarioClienteApolice[]
+  usuariosClienteSubEstipulantes   UsuarioClienteSubEstipulante[]
+  solicitacoesAtendimento          SolicitacaoAtendimento[]
+  anexosSolicitacaoAtendimento     AnexoSolicitacaoAtendimento[]
+  historicosSolicitacaoAtendimento HistoricoSolicitacaoAtendimento[]
+  roles                            Role[]
+
+  @@map("tenants")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  tenantId  String
+  email     String
+  password  String
+  name      String
+  role      String   @default("OPERADOR")
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  // Relações para Sistema de Permissões
+  roles       UserRole[]
+  resourceFilters UserResourceFilter[]
+
+  // Relações para Solicitações
+  solicitacoesCriadas   Solicitacao[]          @relation("SolicitacoesCriadas")
+  historicoSolicitacoes HistoricoSolicitacao[] @relation("HistoricoSolicitacoes")
+
+  // Relações para Placement
+  placementsGerenciados Placement[]          @relation("PlacementsGerenciados")
+  placementsAnalisados  Placement[]          @relation("PlacementsAnalisados")
+  placementsSolicitados Placement[]          @relation("PlacementsSolicitados")
+  historicoPlacements   HistoricoPlacement[] @relation("HistoricoPlacements")
+
+  // Relações para Implantação
+  historicoImplantacoes HistoricoImplantacao[] @relation("HistoricoImplantacoes")
+
+  // Relações para Portal RH
+  usuariosClienteCriados           UsuarioCliente[]                  @relation("UsuariosClienteCriados")
+  solicitacoesAtendimento          SolicitacaoAtendimento[]          @relation("SolicitacoesAtendimento")
+  historicoSolicitacoesAtendimento HistoricoSolicitacaoAtendimento[] @relation("HistoricoSolicitacoesAtendimento")
+
+  @@unique([tenantId, email])
+  @@map("users")
+}
+
+model GrupoEconomico {
+  id        String   @id @default(uuid())
+  tenantId  String
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant   Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  empresas Empresa[]
+
+  @@map("grupos_economicos")
+}
+
+model Empresa {
+  id               String   @id @default(uuid())
+  tenantId         String
+  grupoEconomicoId String
+  cnpj             String
+  razaoSocial      String
+  dataCadastro     DateTime @default(now())
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  tenant         Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  grupoEconomico GrupoEconomico @relation(fields: [grupoEconomicoId], references: [id], onDelete: Cascade)
+  apolices       Apolice[]
+  contatos       Contato[]
+  enderecos      Endereco[]
+
+  @@unique([tenantId, cnpj])
+  @@map("empresas")
+}
+
+model Contato {
+  id          String   @id @default(uuid())
+  tenantId    String
+  empresaId   String
+  nome        String
+  email       String?
+  telefone    String?
+  cargo       String?
+  observacoes String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tenant  Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  empresa Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+
+  @@map("contatos")
+}
+
+model Cliente {
+  id          String   @id @default(uuid())
+  tenantId    String
+  name        String
+  cnpj        String?
+  email       String?
+  phone       String?
+  address     String?
+  city        String?
+  state       String?
+  zipCode     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, cnpj])
+  @@map("clientes")
+}
+
+model Endereco {
+  id          String   @id @default(uuid())
+  tenantId    String
+  empresaId   String
+  tipo        String   @default("COMERCIAL") // COMERCIAL, COBRANCA, ENTREGA
+  logradouro  String
+  numero      String?
+  complemento String?
+  bairro      String?
+  cidade      String
+  estado      String
+  cep         String?
+  observacoes String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tenant  Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  empresa Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+
+  @@map("enderecos")
+}
+
+model Fornecedor {
+  id                         String   @id @default(uuid())
+  tenantId                   String
+  tipo                       String   @default("FORNECEDOR") // FORNECEDOR, CORRETOR_PARCEIRO
+  cnpj                       String?
+  registroANS                String?
+  razaoSocial                String
+  nomeFantasia               String?
+  inscricaoEstadual          String?
+  inscricaoMunicipal         String?
+  iof                        String?
+  tipoProduto                String?
+  produtos                   String?
+  planosComReembolso         String?
+  divulgacaoIndiceFinanceiro String?
+  vidasEmpresarialANS        String?
+  custoMedioANS              Float?
+  compAtualizacaoANS         String?
+  observacao                 String?
+  situacaoOperadora          String?  @default("ATIVA")
+  createdAt                  DateTime @default(now())
+  updatedAt                  DateTime @updatedAt
+
+  tenant    Tenant               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  apolices  Apolice[]
+  enderecos EnderecoFornecedor[]
+  contatos  ContatoFornecedor[]
+
+  @@map("fornecedores")
+}
+
+model EnderecoFornecedor {
+  id             String   @id @default(uuid())
+  tenantId       String
+  fornecedorId   String
+  tipo           String   @default("COMERCIAL")
+  cep            String?
+  tipoLogradouro String?
+  logradouro     String
+  semNumero      Boolean? @default(false)
+  numero         String?
+  complemento    String?
+  bairro         String?
+  uf             String
+  cidade         String
+  observacoes    String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  tenant     Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  fornecedor Fornecedor @relation(fields: [fornecedorId], references: [id], onDelete: Cascade)
+
+  @@map("enderecos_fornecedores")
+}
+
+model ContatoFornecedor {
+  id           String   @id @default(uuid())
+  tenantId     String
+  fornecedorId String
+  nome         String
+  cargo        String?
+  email        String?
+  telefone     String?
+  ativo        Boolean? @default(true)
+  observacoes  String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  tenant     Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  fornecedor Fornecedor @relation(fields: [fornecedorId], references: [id], onDelete: Cascade)
+
+  @@map("contatos_fornecedores")
+}
+
+model Apolice {
+  id                         String    @id @default(uuid())
+  tenantId                   String
+  clienteId                  String
+  fornecedorId               String
+  numero                     String
+  produto                    String?
+  codigoCNAE                 String?
+  ramoAtividade              String?
+  inscricaoEstadual          String?
+  inscricaoMunicipal         String?
+  porteCliente               String?
+  dataVigenciaMDS            DateTime?
+  dataVigenciaContratoInicio DateTime?
+  dataVigenciaContratoFim    DateTime?
+  periodoVigencia            String?
+  limiteTecnico              String?
+  regimeContratacao          String?
+  tipoContrato               String?
+  coparticipacao             String?
+  mesReajuste                String?
+  dataVencimentoFatura       DateTime?
+  emissao                    DateTime?
+  dataEntrega                DateTime?
+  dataCorte                  DateTime?
+  codigoProducaoAngariador   String?
+  status                     String    @default("ATIVA")
+  createdAt                  DateTime  @default(now())
+  updatedAt                  DateTime  @updatedAt
+
+  tenant                  Tenant                   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  empresa                 Empresa                  @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+  fornecedor              Fornecedor               @relation(fields: [fornecedorId], references: [id], onDelete: Cascade)
+  subEstipulantes         SubEstipulante[]
+  planos                  Plano[]
+  cobertura               Cobertura?
+  relacionamentos         Relacionamento[]
+  elegibilidades          Elegibilidade[]
+  enderecos               EnderecoApolice[]
+  contatos                ContatoApolice[]
+  comissionamento         ComissionamentoApolice?
+  fee                     FeeApolice?
+  reajustes               Reajuste[]
+  documentos              DocumentoApolice[]
+  servicos                ServicoApolice[]
+  agrupamentosFaturamento AgrupamentoFaturamento[]
+  chamadosImplantacao     ChamadoImplantacao[]
+  implantacoes            Implantacao[]
+  solicitacoes            Solicitacao[]
+  UsuarioClienteApolice   UsuarioClienteApolice[]
+  SolicitacaoAtendimento  SolicitacaoAtendimento[]
+
+  @@map("apolices")
+}
+
+model SubEstipulante {
+  id                   String    @id @default(uuid())
+  tenantId             String
+  apoliceId            String
+  codigoEstipulante    String
+  cnpj                 String?
+  razaoSocial          String
+  codigoCNAE           String?
+  ramoAtividade        String?
+  inscricaoEstadual    String?
+  inscricaoMunicipal   String?
+  tipo                 String? // "PRESTADOR_SERVICO" ou null/outro
+  dataVigenciaContrato DateTime?
+  dataCancelamento     DateTime?
+  status               String    @default("ATIVA")
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  tenant                         Tenant                         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  apolice                        Apolice                        @relation(fields: [apoliceId], references: [id], onDelete: Cascade)
+  enderecos                      EnderecoSubEstipulante[]
+  contatos                       ContatoSubEstipulante[]
+  usuariosClienteSubEstipulantes UsuarioClienteSubEstipulante[]
+  solicitacoesAtendimento        SolicitacaoAtendimento[]
+
+  @@map("sub_estipulantes")
+}
+
+model Plano {
+  id                        String    @id @default(uuid())
+  tenantId                  String
+  apoliceId                 String
+  nomePlano                 String
+  codANS                    String?
+  codPlano                  String?
+  vidasImplantadas          Int?
+  tipoValorPlano            String? // "custo_medio" ou "faixa_etaria"
+  valorPlano                Float? // Valor quando tipoValorPlano = "custo_medio"
+  custoMedio                Float? // Alias para valorPlano quando tipoValorPlano = "custo_medio"
+  quantidadeVidasCustoMedio Int? // Quantidade de vidas quando tipoValorPlano = "custo_medio"
+  faixa0a18                 Float? // Valor da faixa
+  vidasFaixa0a18            Int? // Quantidade de vidas na faixa
+  faixa19a23                Float?
+  vidasFaixa19a23           Int?
+  faixa24a28                Float?
+  vidasFaixa24a28           Int?
+  faixa29a33                Float?
+  vidasFaixa29a33           Int?
+  faixa34a38                Float?
+  vidasFaixa34a38           Int?
+  faixa39a43                Float?
+  vidasFaixa39a43           Int?
+  faixa44a48                Float?
+  vidasFaixa44a48           Int?
+  faixa49a53                Float?
+  vidasFaixa49a53           Int?
+  faixa54a58                Float?
+  vidasFaixa54a58           Int?
+  faixa59ouMais             Float?
+  vidasFaixa59ouMais        Int?
+  inicioVigencia            DateTime?
+  fimVigencia               DateTime?
+  upgrade                   Boolean?  @default(false)
+  downgrade                 Boolean?  @default(false)
+  liberadoMovimentacao      Boolean?  @default(false)
+  elegibilidadeId           String?
+  reembolso                 Boolean?  @default(false)
+  coparticipacao            Boolean?  @default(false)
+  createdAt                 DateTime  @default(now())
+  updatedAt                 DateTime  @updatedAt
+
+  reembolsos      ReembolsoPlano[]
+  coparticipacoes CoparticipacaoPlano[]
+  elegibilidade   Elegibilidade?        @relation(fields: [elegibilidadeId], references: [id], onDelete: SetNull)
+
+  tenant  Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  apolice Apolice @relation(fields: [apoliceId], references: [id], onDelete: Cascade)
+
+  @@map("planos")
+}
+
+model ReembolsoPlano {
+  id           String   @id @default(uuid())
+  tenantId     String
+  planoId      String
+  valor        Float?
+  procedimento String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  plano  Plano  @relation(fields: [planoId], references: [id], onDelete: Cascade)
+
+  @@map("reembolsos_plano")
+}
+
+model CoparticipacaoPlano {
+  id           String   @id @default(uuid())
+  tenantId     String
+  planoId      String
+  valor        Float?
+  procedimento String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  plano  Plano  @relation(fields: [planoId], references: [id], onDelete: Cascade)
+
+  @@map("coparticipacoes_plano")
+}
+
+model Elegibilidade {
+  id          String   @id @default(uuid())
+  tenantId    String
+  apoliceId   String?
+  nome        String
+  centroCusto String?
+  cnpj        String?
+  descricao   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tenant  Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  apolice Apolice? @relation(fields: [apoliceId], references: [id], onDelete: SetNull)
+  planos  Plano[]
+
+  @@map("elegibilidades")
+}
+
+model EnderecoApolice {
+  id             String   @id @default(uuid())
+  tenantId       String
+  apoliceId      String
+  tipo           String   @default("COMERCIAL")
+  cep            String?
+  tipoLogradouro String?
+  logradouro     String
+  semNumero      Boolean? @default(false)
+  numero         String?
+  complemento    String?
+  bairro         String?
+  uf             String
+  cidade         String
+  observacoes    String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  tenant  Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  apolice Apolice @relation(fields: [apoliceId], references: [id], onDelete: Cascade)
+
+  @@map("enderecos_apolice")
+}
+
+model ContatoApolice {
+  id             String    @id @default(uuid())
+  tenantId       String
+  apoliceId      String
+  nome           String
+  cargo          String?
+  email          String?
+  telefone       String?
+  dataNascimento DateTime?
+  ativo          Boolean?  @default(true)
+  observacoes    String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  tenant  Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  apolice Apolice @relation(fields: [apoliceId], references: [id], onDelete: Cascade)
+
+  @@map("contatos_apolice")
+}
+
+model EnderecoSubEstipulante {
+  id               String   @id @default(uuid())
+  tenantId         String
+  subEstipulanteId String
+  tipo             String   @default("COMERCIAL")
+  cep              String?
+  tipoLogradouro   String?
+  logradouro       String
+  semNumero        Boolean? @default(false)
+  numero           String?
+  complemento      String?
+  bairro           String?
+  uf               String
+  cidade           String
+  observacoes      String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  tenant         Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  subEstipulante SubEstipulante @relation(fields: [subEstipulanteId], references: [id], onDelete: Cascade)
+
+  @@map("enderecos_sub_estipulante")
+}
+
+model ContatoSubEstipulante {
+  id               String    @id @default(uuid())
+  tenantId         String
+  subEstipulanteId String
+  nome             String
+  cargo            String?
+  email            String?
+  telefone         String?
+  dataNascimento   DateTime?
+  ativo            Boolean?  @default(true)
+  observacoes      String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  tenant         Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  subEstipulante SubEstipulante @relation(fields: [subEstipulanteId], references: [id], onDelete: Cascade)
+
+  @@map("contatos_sub_estipulante")
+}
+
+model ComissionamentoApolice {
+  id                        String   @id @default(uuid())
+  tenantId                  String
+  apoliceId                 String
+  temCorretorParceiro       Boolean? @default(false)
+  valorAgenciamentoContrato Float? // Valor do agenciamento do contrato
+  valorVitalicioContrato    Float? // Valor do vitalício do contrato
+  agenciamentoConsultoria   String? // JSON com array de percentuais das 12 parcelas
+  vitalicioConsultoria      String? // JSON com array de percentuais das 12 parcelas
+  agenciamentoCorretor      String? // JSON com array de percentuais das 12 parcelas
+  vitalicioCorretor         String? // JSON com array de percentuais das 12 parcelas
+  createdAt                 DateTime @default(now())
+  updatedAt                 DateTime @updatedAt
+
+  tenant  Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  apolice Apolice @relation(fields: [apoliceId], references: [id], onDelete: Cascade)
+
+  @@unique([apoliceId])
+  @@map("comissionamentos_apolice")
+}
+
+model FeeApolice {
+  id                  String   @id @default(uuid())
+  tenantId            String
+  apoliceId           String
+  valorFeeMensal      Float?
+  feeConsultoria      Float?
+  feeCorretorParceiro Float?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  tenant  Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  apolice Apolice @relation(fields: [apoliceId], references: [id], onDelete: Cascade)
+
+  @@unique([apoliceId])
+  @@map("fees_apolice")
+}
+
+model Relacionamento {
+  id                String   @id @default(uuid())
+  tenantId          String
+  apoliceId         String
+  executivo         String?
+  coordenador       String?
+  gerente           String?
+  superintendente   String?
+  diretoria         String?
+  filial            String?
+  celulaAtendimento String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  tenant  Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  apolice Apolice @relation(fields: [apoliceId], references: [id], onDelete: Cascade)
+
+  @@map("relacionamentos")
+}
+
+// Módulo Dados - Configurações Dinâmicas
+model Modulo {
+  id        String   @id @default(uuid())
+  nome      String   @unique
+  descricao String?
+  ativo     Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  configuracoes ConfiguracaoCampo[]
+
+  @@map("modulos")
+}
+
+model ConfiguracaoCampo {
+  id        String   @id @default(uuid())
+  tenantId  String
+  moduloId  String
+  nome      String // Nome do campo (ex: "status", "tipoContrato")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  modulo Modulo         @relation(fields: [moduloId], references: [id], onDelete: Cascade)
+  dados  DadoDinamico[]
+
+  @@unique([tenantId, moduloId, nome])
+  @@map("configuracoes_campos")
+}
+
+model DadoDinamico {
+  id                  String   @id @default(uuid())
+  tenantId            String
+  configuracaoCampoId String
+  valor               String // Valor do dado
+  ordem               Int      @default(0)
+  ativo               Boolean  @default(true)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  tenant            Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  configuracaoCampo ConfiguracaoCampo @relation(fields: [configuracaoCampoId], references: [id], onDelete: Cascade)
+
+  @@map("dados_dinamicos")
+}
+
+model Reajuste {
+  id             String   @id @default(uuid())
+  tenantId       String
+  apoliceId      String
+  tipo           String? // Ex: MOEDA, etc
+  inicioPeriodo  String? // Formato MM/YYYY
+  fimPeriodo     String? // Formato MM/YYYY
+  indiceApurado  Float?
+  indiceAplicado Float?
+  mesAplicado    String? // Formato MM/YYYY
+  dataNegociacao String? // Formato MM/YYYY
+  conclusao      String? // Ex: REAJUSTE, etc
+  observacao     String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  tenant  Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  apolice Apolice @relation(fields: [apoliceId], references: [id], onDelete: Cascade)
+
+  @@map("reajustes")
+}
+
+model Cobertura {
+  id                String   @id @default(uuid())
+  tenantId          String
+  apoliceId         String   @unique
+  tipoMultiplicador String? // "SALARIAL", "UNIFORME", "ESCALONADO", "GLOBAL"
+  multiplicadorMin  Float?
+  multiplicadorMax  Float?
+  multiplo          Float?
+  taxaAdm           Float?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  tenant  Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  apolice Apolice         @relation(fields: [apoliceId], references: [id], onDelete: Cascade)
+  items   CoberturaItem[]
+
+  @@map("coberturas")
+}
+
+model CoberturaItem {
+  id                String   @id @default(uuid())
+  tenantId          String
+  coberturaId       String
+  nome              String
+  selecionado       Boolean  @default(false)
+  tipoValor         String? // "PERCENTUAL" ou "VALOR_FIXO"
+  percentualTitular Float?
+  percentualConjuge Float?
+  percentualFilhos  Float?
+  valorFixoTitular  Float?
+  valorFixoConjuge  Float?
+  valorFixoFilhos   Float?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  tenant    Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  cobertura Cobertura @relation(fields: [coberturaId], references: [id], onDelete: Cascade)
+
+  @@map("cobertura_items")
+}
+
+model DocumentoApolice {
+  id             String   @id @default(uuid())
+  tenantId       String
+  apoliceId      String
+  nomeArquivo    String // Nome original do arquivo
+  nomeExibicao   String // Nome para exibição (pode ser renomeado)
+  caminhoArquivo String // Caminho do arquivo no servidor
+  tipoArquivo    String? // MIME type
+  tamanho        Int? // Tamanho em bytes
+  visivel        Boolean  @default(false) // true = cliente tem acesso, false = apenas interno
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  tenant  Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  apolice Apolice @relation(fields: [apoliceId], references: [id], onDelete: Cascade)
+
+  @@map("documentos_apolice")
+}
+
+model ServicoApolice {
+  id          String    @id @default(uuid())
+  tenantId    String
+  apoliceId   String
+  categoria   String // "OPERACIONAL", "FERRAMENTAS", "GESTAO_SAUDE"
+  nome        String
+  descricao   String?
+  valor       Float?
+  dataInicio  DateTime?
+  dataFim     DateTime?
+  status      String    @default("ATIVO") // "ATIVO", "INATIVO", "CONCLUIDO"
+  observacoes String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  tenant  Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  apolice Apolice @relation(fields: [apoliceId], references: [id], onDelete: Cascade)
+
+  @@map("servicos_apolice")
+}
+
+model AgrupamentoFaturamento {
+  id                           String   @id @default(uuid())
+  tenantId                     String
+  apoliceId                    String
+  nome                         String // Nome do agrupamento
+  estipulanteId                String? // ID da estipulante principal (se for estipulante principal)
+  subEstipulanteId             String? // ID da sub estipulante (se for sub estipulante)
+  isLider                      Boolean  @default(false) // Indica se é o líder do agrupamento
+  ordem                        Int      @default(0) // Ordem de exibição
+  emails                       String? // E-mails para entrega (separados por vírgula ou JSON)
+  informacoesAdicionaisMailing String? // Informações adicionais de mailing
+  createdAt                    DateTime @default(now())
+  updatedAt                    DateTime @updatedAt
+
+  tenant  Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  apolice Apolice @relation(fields: [apoliceId], references: [id], onDelete: Cascade)
+
+  @@map("agrupamentos_faturamento")
+}
+
+// Modelo para Chamado de Implantação (Solicitação e Acompanhamento)
+model ChamadoImplantacao {
+  id              String    @id @default(uuid())
+  tenantId        String
+  apoliceId       String
+  numero          String // Número do chamado
+  titulo          String // Título do chamado
+  descricao       String? // Descrição da solicitação
+  solicitanteId   String? // ID do usuário solicitante
+  responsavelId   String? // ID do usuário responsável pela implantação
+  status          String    @default("ABERTO") // ABERTO, EM_ANDAMENTO, CONCLUIDO, CANCELADO
+  prioridade      String    @default("MEDIA") // BAIXA, MEDIA, ALTA, URGENTE
+  dataSolicitacao DateTime  @default(now())
+  dataPrazo       DateTime?
+  dataConclusao   DateTime?
+  observacoes     String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  tenant      Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  apolice     Apolice      @relation(fields: [apoliceId], references: [id], onDelete: Cascade)
+  implantacao Implantacao?
+
+  @@map("chamados_implantacao")
+}
+
+// Modelo para Implantação (Processo de Implantação)
+model Implantacao {
+  id                     String    @id @default(uuid())
+  tenantId               String
+  apoliceId              String
+  chamadoId              String?   @unique // ID do chamado relacionado (opcional)
+  solicitacaoId          String?   @unique // ID da solicitação (se veio direto da solicitação)
+  demandaId              String?   @unique // ID da demanda relacionada (se veio do Placement)
+  responsavelId          String? // ID do usuário responsável
+  status                 String    @default("PENDENTE") // PENDENTE, EM_ANDAMENTO, CONCLUIDA, CANCELADA
+  statusTriagem          String? // "PENDENTE", "APROVADO", "REJEITADO", "SOLICITAR_INFO"
+  gestorTriagemId        String? // ID do gestor que fez a triagem
+  dataTriagem            DateTime?
+  observacoesTriagem     String?
+  dataInicio             DateTime?
+  dataFim                DateTime?
+  dataPrevistaFim        DateTime?
+  percentualConclusao    Int       @default(0) // 0 a 100
+  observacoes            String?
+  dadosApolice           String? // JSON com dados da apólice preenchidos
+  responsavelImplantacao String? // Nome do responsável pela implantação
+  dataConclusao          DateTime? // Data de conclusão
+  evidencias             String? // JSON com evidências
+  itensImplantados       String? // JSON com itens implantados
+  validacaoDemandante    String? // "APROVADO", "PENDENTE", "REJEITADO"
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+
+  tenant          Tenant                 @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  apolice         Apolice                @relation(fields: [apoliceId], references: [id], onDelete: Cascade)
+  chamado         ChamadoImplantacao?    @relation(fields: [chamadoId], references: [id], onDelete: SetNull)
+  solicitacao     Solicitacao?           @relation(fields: [solicitacaoId], references: [id], onDelete: SetNull)
+  demanda         Demanda?               @relation(fields: [demandaId], references: [id], onDelete: SetNull)
+  cronogramaItens CronogramaItem[]
+  historico       HistoricoImplantacao[]
+
+  @@map("implantacoes")
+}
+
+// Modelo para Itens do Cronograma
+model CronogramaItem {
+  id                 String    @id @default(uuid())
+  tenantId           String
+  implantacaoId      String
+  titulo             String // Título da etapa
+  descricao          String? // Descrição da etapa
+  ordem              Int // Ordem de execução
+  status             String    @default("PENDENTE") // PENDENTE, EM_ANDAMENTO, CONCLUIDA, BLOQUEADA
+  dataPrevistaInicio DateTime?
+  dataPrevistaFim    DateTime?
+  dataInicio         DateTime?
+  dataFim            DateTime?
+  responsavelId      String? // ID do usuário responsável pela etapa
+  observacoes        String?
+  visivelSolicitante Boolean   @default(true) // Se o solicitante pode ver esta etapa
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  tenant      Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  implantacao Implantacao @relation(fields: [implantacaoId], references: [id], onDelete: Cascade)
+
+  @@map("cronograma_itens")
+}
+
+// ============================================
+// MÓDULO: SOLICITAÇÕES
+// ============================================
+
+model Solicitacao {
+  id              String    @id @default(uuid())
+  tenantId        String
+  numero          String // ID da solicitação (ex: SOL-000001) - gerado automaticamente
+  tipo            String // "PLACEMENT" ou "IMPLANTACAO" - OBRIGATÓRIO
+  tipoImplantacao String? // "NOMEACAO" ou "NOVA_APOLICE" - Obrigatório se tipo=IMPLANTACAO
+  solicitanteId   String? // ID do usuário (perfil Relacionamento) - OBRIGATÓRIO (mas pode ser null temporariamente)
+  apoliceId       String? // Regras:
+  // - Se tipo=PLACEMENT: Opcional
+  // - Se tipo=IMPLANTACAO e tipoImplantacao=NOMEACAO: Obrigatório
+  // - Se tipo=IMPLANTACAO e tipoImplantacao=NOVA_APOLICE: Opcional
+  descricao       String // Descrição detalhada da necessidade - OBRIGATÓRIO
+  itensServicos   String? // JSON com lista de itens/serviços solicitados (opcional)
+  nivelUrgencia   String    @default("MEDIA") // BAIXA, MEDIA, ALTA, URGENTE
+  observacoes     String? // Observações adicionais (opcional)
+  prazoDesejado   DateTime? // Prazo desejado (opcional)
+  status          String    @default("ABERTA") // ABERTA, ENVIADA_PLACEMENT, ENVIADA_IMPLANTACAO, CANCELADA
+  placementId     String?   @unique // ID do placement relacionado (se tipo = PLACEMENT)
+  implantacaoId   String?   @unique // ID da implantação relacionada (se tipo = IMPLANTACAO)
+  dataAbertura    DateTime  @default(now()) // Data e hora da abertura - automático
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  tenant      Tenant                 @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  solicitante User?                  @relation("SolicitacoesCriadas", fields: [solicitanteId], references: [id], onDelete: SetNull)
+  apolice     Apolice?               @relation(fields: [apoliceId], references: [id], onDelete: SetNull)
+  placement   Placement?             @relation("PlacementSolicitacao")
+  implantacao Implantacao?
+  anexos      AnexoSolicitacao[]
+  historico   HistoricoSolicitacao[]
+
+  @@map("solicitacoes")
+}
+
+model AnexoSolicitacao {
+  id             String   @id @default(uuid())
+  tenantId       String
+  solicitacaoId  String
+  nomeArquivo    String
+  caminhoArquivo String
+  tipoArquivo    String?
+  tamanho        Int?
+  createdAt      DateTime @default(now())
+
+  tenant      Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  solicitacao Solicitacao @relation(fields: [solicitacaoId], references: [id], onDelete: Cascade)
+
+  @@map("anexos_solicitacao")
+}
+
+model HistoricoSolicitacao {
+  id              String   @id @default(uuid())
+  tenantId        String
+  solicitacaoId   String
+  acao            String // "CRIADA", "ENVIADA_PLACEMENT", "CANCELADA", etc
+  usuarioId       String? // ID do usuário que executou a ação
+  observacoes     String?
+  dadosAnteriores String? // JSON com dados anteriores (para auditoria)
+  dadosNovos      String? // JSON com dados novos
+  createdAt       DateTime @default(now())
+
+  tenant      Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  solicitacao Solicitacao @relation(fields: [solicitacaoId], references: [id], onDelete: Cascade)
+  usuario     User?       @relation("HistoricoSolicitacoes", fields: [usuarioId], references: [id], onDelete: SetNull)
+
+  @@map("historico_solicitacao")
+}
+
+// ============================================
+// MÓDULO: PLACEMENT
+// ============================================
+
+model Placement {
+  id                    String    @id @default(uuid())
+  tenantId              String
+  solicitacaoId         String? // ID da solicitação que originou
+  numero                String // ID do placement (ex: PL-000001)
+  status                String    @default("TRIAGEM") // TRIAGEM, EM_ANDAMENTO, ENTREGUE, FECHADO, REJEITADO
+  gestorId              String? // ID do gestor responsável
+  analistaId            String? // ID do analista responsável
+  solicitanteId         String? // ID do solicitante
+  dataTriagem           DateTime?
+  dataInicio            DateTime?
+  dataEntrega           DateTime?
+  dataFechamento        DateTime?
+  responsavelFechamento String? // Nome do responsável pelo fechamento
+  observacoesFechamento String?
+  itensFinais           String? // JSON com itens finais da cotação
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  tenant      Tenant               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  solicitacao Solicitacao?         @relation("PlacementSolicitacao", fields: [solicitacaoId], references: [id], onDelete: SetNull)
+  gestor      User?                @relation("PlacementsGerenciados", fields: [gestorId], references: [id], onDelete: SetNull)
+  analista    User?                @relation("PlacementsAnalisados", fields: [analistaId], references: [id], onDelete: SetNull)
+  solicitante User?                @relation("PlacementsSolicitados", fields: [solicitanteId], references: [id], onDelete: SetNull)
+  itens       ItemPlacement[]
+  anexos      AnexoPlacement[]
+  historico   HistoricoPlacement[]
+  demanda     Demanda?
+
+  @@unique([solicitacaoId])
+  @@map("placements")
+}
+
+model ItemPlacement {
+  id            String   @id @default(uuid())
+  tenantId      String
+  placementId   String
+  descricao     String
+  quantidade    Float?
+  valorUnitario Float?
+  valorTotal    Float?
+  observacoes   String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  tenant    Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  placement Placement @relation(fields: [placementId], references: [id], onDelete: Cascade)
+
+  @@map("itens_placement")
+}
+
+model AnexoPlacement {
+  id             String   @id @default(uuid())
+  tenantId       String
+  placementId    String
+  nomeArquivo    String
+  caminhoArquivo String
+  tipoArquivo    String?
+  tamanho        Int?
+  etapa          String? // "TRIAGEM", "COTACAO", "ENTREGA", "FECHAMENTO"
+  createdAt      DateTime @default(now())
+
+  tenant    Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  placement Placement @relation(fields: [placementId], references: [id], onDelete: Cascade)
+
+  @@map("anexos_placement")
+}
+
+model HistoricoPlacement {
+  id              String   @id @default(uuid())
+  tenantId        String
+  placementId     String
+  acao            String // "APROVADO_TRIAGEM", "REJEITADO_TRIAGEM", "ASSUMIDO_ANALISTA", "ENTREGUE", "APROVADO_SOLICITANTE", "REPIQUE", "FECHADO"
+  usuarioId       String? // ID do usuário que executou a ação
+  observacoes     String?
+  dadosAnteriores String? // JSON
+  dadosNovos      String? // JSON
+  createdAt       DateTime @default(now())
+
+  tenant    Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  placement Placement @relation(fields: [placementId], references: [id], onDelete: Cascade)
+  usuario   User?     @relation("HistoricoPlacements", fields: [usuarioId], references: [id], onDelete: SetNull)
+
+  @@map("historico_placement")
+}
+
+model Demanda {
+  id                      String   @id @default(uuid())
+  tenantId                String
+  placementId             String   @unique
+  implantacaoId           String?  @unique
+  status                  String   @default("FECHADO") // FECHADO, ENVIADO_IMPLANTACAO
+  dataFechamento          DateTime
+  responsavelFechamento   String
+  observacoesEncerramento String?
+  itensFinais             String? // JSON
+  anexosFinais            String? // JSON com referências aos anexos
+  logsEtapas              String? // JSON com histórico completo
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  tenant      Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  placement   Placement    @relation(fields: [placementId], references: [id], onDelete: Cascade)
+  implantacao Implantacao?
+
+  @@map("demandas")
+}
+
+// ============================================
+// EXPANSÃO: IMPLANTAÇÃO
+// ============================================
+
+model HistoricoImplantacao {
+  id              String   @id @default(uuid())
+  tenantId        String
+  implantacaoId   String
+  acao            String // "APROVADO_TRIAGEM", "REJEITADO_TRIAGEM", "INICIADO", "CONCLUIDO", etc
+  usuarioId       String?
+  observacoes     String?
+  dadosAnteriores String?
+  dadosNovos      String?
+  createdAt       DateTime @default(now())
+
+  tenant      Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  implantacao Implantacao @relation(fields: [implantacaoId], references: [id], onDelete: Cascade)
+  usuario     User?       @relation("HistoricoImplantacoes", fields: [usuarioId], references: [id], onDelete: SetNull)
+
+  @@map("historico_implantacao")
+}
+
+// ============================================
+// PORTAL RH - USUÁRIOS CLIENTE
+// ============================================
+
+model UsuarioCliente {
+  id           String    @id @default(uuid())
+  tenantId     String
+  nome         String
+  email        String
+  senha        String // Hash bcrypt
+  cargo        String? // Ex: "Gerente de RH", "Analista de Benefícios"
+  telefone     String?
+  ativo        Boolean   @default(true)
+  criadoPor    String? // ID do usuário interno que criou
+  ultimoAcesso DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  tenant                  Tenant                         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  criador                 User?                          @relation("UsuariosClienteCriados", fields: [criadoPor], references: [id], onDelete: SetNull)
+  apolices                UsuarioClienteApolice[] // Relação many-to-many com apólices
+  subEstipulantes         UsuarioClienteSubEstipulante[] // Relação many-to-many com sub-estipulantes
+  solicitacoesAtendimento SolicitacaoAtendimento[]
+
+  @@unique([tenantId, email])
+  @@map("usuarios_cliente")
+}
+
+model UsuarioClienteApolice {
+  id               String   @id @default(uuid())
+  tenantId         String
+  usuarioClienteId String
+  apoliceId        String
+  createdAt        DateTime @default(now())
+
+  tenant         Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  usuarioCliente UsuarioCliente @relation(fields: [usuarioClienteId], references: [id], onDelete: Cascade)
+  apolice        Apolice        @relation(fields: [apoliceId], references: [id], onDelete: Cascade)
+
+  @@unique([usuarioClienteId, apoliceId])
+  @@map("usuarios_cliente_apolices")
+}
+
+model UsuarioClienteSubEstipulante {
+  id               String   @id @default(uuid())
+  tenantId         String
+  usuarioClienteId String
+  subEstipulanteId String
+  createdAt        DateTime @default(now())
+
+  tenant         Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  usuarioCliente UsuarioCliente @relation(fields: [usuarioClienteId], references: [id], onDelete: Cascade)
+  subEstipulante SubEstipulante @relation(fields: [subEstipulanteId], references: [id], onDelete: Cascade)
+
+  @@unique([usuarioClienteId, subEstipulanteId])
+  @@map("usuarios_cliente_sub_estipulantes")
+}
+
+// ============================================
+// PORTAL RH - ATENDIMENTO
+// ============================================
+
+model SolicitacaoAtendimento {
+  id                   String    @id @default(uuid())
+  tenantId             String
+  apoliceId            String? // Apólice relacionada (opcional - pode ser sobre sub-estipulante)
+  subEstipulanteId     String? // Sub-estipulante relacionado (opcional)
+  usuarioClienteId     String // Cliente que abriu
+  numero               String // Ex: ATD-000001
+  tipo                 String // "DUVIDA", "SOLICITACAO", "RECLAMACAO", "SUGESTAO"
+  assunto              String
+  descricao            String
+  prioridade           String    @default("MEDIA") // BAIXA, MEDIA, ALTA, URGENTE
+  status               String    @default("ABERTA") // ABERTA, EM_ATENDIMENTO, RESOLVIDA, FECHADA
+  responsavelId        String? // Usuário interno responsável
+  dataAbertura         DateTime  @default(now())
+  dataResolucao        DateTime?
+  observacoesResolucao String?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  tenant         Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  apolice        Apolice?        @relation(fields: [apoliceId], references: [id], onDelete: Cascade)
+  subEstipulante SubEstipulante? @relation(fields: [subEstipulanteId], references: [id], onDelete: Cascade)
+  usuarioCliente UsuarioCliente  @relation(fields: [usuarioClienteId], references: [id], onDelete: Cascade)
+  responsavel    User?           @relation("SolicitacoesAtendimento", fields: [responsavelId], references: [id], onDelete: SetNull)
+
+  anexos    AnexoSolicitacaoAtendimento[]
+  historico HistoricoSolicitacaoAtendimento[]
+
+  @@map("solicitacoes_atendimento")
+}
+
+model AnexoSolicitacaoAtendimento {
+  id                       String   @id @default(uuid())
+  tenantId                 String
+  solicitacaoAtendimentoId String
+  nomeArquivo              String
+  caminhoArquivo           String
+  tipoArquivo              String?
+  tamanho                  Int?
+  createdAt                DateTime @default(now())
+
+  tenant                 Tenant                 @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  solicitacaoAtendimento SolicitacaoAtendimento @relation(fields: [solicitacaoAtendimentoId], references: [id], onDelete: Cascade)
+
+  @@map("anexos_solicitacao_atendimento")
+}
+
+model HistoricoSolicitacaoAtendimento {
+  id                       String   @id @default(uuid())
+  tenantId                 String
+  solicitacaoAtendimentoId String
+  acao                     String // "ABERTA", "ATRIBUIDA", "RESOLVIDA", "FECHADA", "REABERTA"
+  usuarioId                String? // Usuário interno ou cliente
+  observacoes              String?
+  createdAt                DateTime @default(now())
+
+  tenant                 Tenant                 @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  solicitacaoAtendimento SolicitacaoAtendimento @relation(fields: [solicitacaoAtendimentoId], references: [id], onDelete: Cascade)
+  usuario                User?                  @relation("HistoricoSolicitacoesAtendimento", fields: [usuarioId], references: [id], onDelete: SetNull)
+
+  @@map("historico_solicitacao_atendimento")
+}
+
+// ============================================
+// SISTEMA DE PERMISSÕES (RBAC)
+// ============================================
+
+// Recursos do sistema (módulos/entidades)
+model Resource {
+  id          String   @id @default(uuid())
+  codigo      String   @unique // Ex: "APOLICES", "CLIENTES", "FORNECEDORES"
+  nome        String   // Nome amigável
+  descricao   String?
+  modulo      String?  // Módulo ao qual pertence (ex: "GESTAO", "PLACEMENT", "IMPLANTACAO")
+  ativo       Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  permissions RolePermission[]
+  filters     UserResourceFilter[]
+
+  @@map("resources")
+}
+
+// Ações/Permissões disponíveis
+model Permission {
+  id          String   @id @default(uuid())
+  codigo      String   @unique // Ex: "CREATE", "READ", "UPDATE", "DELETE", "APPROVE", "REJECT"
+  nome        String   // Nome amigável
+  descricao   String?
+  categoria   String?  // Categoria da permissão (ex: "CRUD", "WORKFLOW", "ADMIN")
+  ativo       Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  rolePermissions RolePermission[]
+
+  @@map("permissions")
+}
+
+// Perfis de acesso (Roles)
+model Role {
+  id          String   @id @default(uuid())
+  tenantId    String?  // null = role global do sistema
+  codigo      String   // Ex: "ADMIN", "GESTOR", "OPERADOR", "ANALISTA"
+  nome        String   // Nome amigável
+  descricao   String?
+  isSystem    Boolean  @default(false) // Se true, não pode ser deletado
+  ativo       Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tenant          Tenant?         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  permissions     RolePermission[]
+  userRoles       UserRole[]
+  resourceFilters UserResourceFilter[]
+
+  @@unique([tenantId, codigo])
+  @@map("roles")
+}
+
+// Relação many-to-many entre Roles e Permissions
+model RolePermission {
+  id           String   @id @default(uuid())
+  roleId       String
+  permissionId String
+  resourceId   String?  // null = permissão global, não null = permissão específica do recurso
+  createdAt    DateTime @default(now())
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  resource   Resource?  @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+
+  // Unique: role + permission + resource (resource pode ser null para permissões globais)
+  // Usar string vazia quando resourceId for null para permitir unique constraint
+  @@unique([roleId, permissionId, resourceId])
+  @@map("role_permissions")
+}
+
+// Relação many-to-many entre Users e Roles (um usuário pode ter múltiplos perfis)
+model UserRole {
+  id        String   @id @default(uuid())
+  userId    String
+  roleId    String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, roleId])
+  @@map("user_roles")
+}
+
+// Filtros de acesso por recurso específico (ex: ver apenas apólices de um grupo econômico)
+model UserResourceFilter {
+  id         String   @id @default(uuid())
+  userId     String?  // null = filtro aplicado ao role
+  roleId     String?  // null = filtro aplicado ao usuário
+  resourceId String
+  tipoFiltro String   // "GRUPO_ECONOMICO", "EMPRESA", "APOLICE", "FORNECEDOR", etc
+  valorFiltro String  // ID do recurso filtrado (ex: ID do grupo econômico)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user     User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role     Role?     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  resource Resource  @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+
+  // Garantir que ou userId ou roleId seja preenchido, mas não ambos
+  @@map("user_resource_filters")
+}

@@ -1,0 +1,27 @@
+========================================
+  EXECUTE ESTE COMANDO NO POWERSHELL
+========================================
+
+Na pasta backend, execute:
+
+npm run fix:direct
+
+OU
+
+node fix-direct.js
+
+========================================
+O script vai:
+1. Remover pasta problemática
+2. Deletar banco antigo  
+3. Regenerar Prisma Client
+4. Aplicar migrations
+5. Popular dados
+
+========================================
+Após executar, verifique com:
+
+npm run check:permissions
+
+========================================
+
