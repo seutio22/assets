@@ -8,18 +8,17 @@ COPY package*.json ./
 # Instalar dependências
 RUN npm install
 
-# Copiar código fonte
+# Copiar código fonte (inclui start.sh)
 COPY . .
 
 # Build da aplicação
 RUN npm run build
 
+# Dar permissão de execução ao script (depois do build para não invalidar cache)
+RUN chmod +x /app/start.sh
+
 # Instalar serve globalmente
 RUN npm install -g serve
-
-# Copiar script de inicialização e dar permissão
-COPY start.sh /app/start.sh
-RUN chmod +x /app/start.sh
 
 # Expor porta (Railway fornece via variável PORT)
 EXPOSE 3000
