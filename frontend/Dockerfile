@@ -2,25 +2,25 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# Copiar arquivos de dependências
-COPY package*.json ./
+# Copiar todos os arquivos
+COPY . .
 
 # Instalar dependências
 RUN npm install
 
-# Copiar código fonte (inclui start.sh)
-COPY . .
-
 # Build da aplicação
 RUN npm run build
-
-# Dar permissão de execução ao script (depois do build para não invalidar cache)
-RUN chmod +x /app/start.sh
 
 # Instalar serve globalmente
 RUN npm install -g serve
 
-# Expor porta (Railway fornece via variável PORT)
+# Criar script de inicialização inline
+RUN echo '#!/bin/sh' > /app/start.sh && \
+    echo 'PORT=${PORT:-3000}' >> /app/start.sh && \
+    echo 'exec serve -s dist -l $PORT' >> /app/start.sh && \
+    chmod +x /app/start.sh
+
+# Expor porta
 EXPOSE 3000
 
 # Comando para iniciar usando PORT do Railway
