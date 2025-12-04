@@ -22,12 +22,22 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const [gruposRes, empresasRes, fornecedoresRes, apolicesRes] = await Promise.all([
+        // Timeout de 10 segundos para não travar a interface
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Timeout')), 10000)
+        )
+
+        const statsPromise = Promise.all([
           api.get('/grupos-economicos?limit=1'),
           api.get('/empresas?limit=1'),
           api.get('/fornecedores?limit=1'),
           api.get('/apolices?limit=1&status=ATIVA')
         ])
+
+        const [gruposRes, empresasRes, fornecedoresRes, apolicesRes] = await Promise.race([
+          statsPromise,
+          timeoutPromise
+        ]) as any[]
 
         setStats({
           clientes: empresasRes.data.pagination?.total || 0,
@@ -35,8 +45,15 @@ const Dashboard = () => {
           apolices: apolicesRes.data.pagination?.total || 0,
           apolicesAtivas: apolicesRes.data.pagination?.total || 0
         })
-      } catch (error) {
+      } catch (error: any) {
         console.error('Erro ao carregar estatísticas:', error)
+        // Em caso de erro, mostrar zeros mas não travar
+        setStats({
+          clientes: 0,
+          fornecedores: 0,
+          apolices: 0,
+          apolicesAtivas: 0
+        })
       } finally {
         setLoading(false)
       }
