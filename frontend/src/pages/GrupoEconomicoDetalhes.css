@@ -1,0 +1,246 @@
+.grupo-detalhes-page {
+  max-width: 1600px;
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+}
+
+.btn-back {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  background: transparent;
+  border: 1px solid var(--color-gray-medium);
+  color: var(--color-text);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-back:hover {
+  background-color: var(--color-gray-light);
+  border-color: var(--color-gray-dark);
+}
+
+.page-header > div {
+  flex: 1;
+}
+
+.grupo-subtitle {
+  color: var(--color-gray-dark);
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.empresas-section {
+  margin-top: var(--spacing-lg);
+}
+
+.empresas-section h2 {
+  margin-bottom: var(--spacing-md);
+  color: var(--color-text);
+}
+
+.empresas-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.empresa-card {
+  background: var(--color-white);
+  border-radius: 12px;
+  padding: var(--spacing-lg);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.empresa-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: var(--spacing-lg);
+  padding-bottom: var(--spacing-md);
+  border-bottom: 2px solid var(--color-gray-light);
+}
+
+.empresa-info {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-md);
+  flex: 1;
+}
+
+.empresa-info h3 {
+  margin: 0 0 4px 0;
+  color: var(--color-text);
+  font-size: 1.25rem;
+}
+
+.empresa-cnpj {
+  margin: 0;
+  color: var(--color-gray-dark);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.empresa-data {
+  margin: 4px 0 0 0;
+  color: var(--color-gray-dark);
+  font-size: 0.875rem;
+}
+
+.empresa-actions {
+  display: flex;
+  gap: var(--spacing-xs);
+}
+
+.empresa-details {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.contatos-section,
+.enderecos-section {
+  background: var(--color-gray-light);
+  border-radius: 8px;
+  padding: var(--spacing-md);
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-md);
+}
+
+.section-header h4 {
+  margin: 0;
+  flex: 1;
+  color: var(--color-text);
+  font-size: 1rem;
+}
+
+.btn-link-small {
+  background: transparent;
+  border: none;
+  color: var(--color-secondary);
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.2s ease;
+}
+
+.btn-link-small:hover {
+  background-color: rgba(61, 155, 142, 0.1);
+}
+
+.sub-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--color-white);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.sub-table thead {
+  background-color: var(--color-dark);
+  color: var(--color-white);
+}
+
+.sub-table th {
+  padding: var(--spacing-sm) var(--spacing-md);
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.sub-table tbody tr {
+  border-bottom: 1px solid var(--color-gray-medium);
+}
+
+.sub-table tbody tr:hover {
+  background-color: var(--color-gray-light);
+}
+
+.sub-table td {
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-size: 0.875rem;
+}
+
+.empty-subsection {
+  text-align: center;
+  padding: var(--spacing-md);
+  color: var(--color-gray-dark);
+  font-size: 0.875rem;
+  font-style: italic;
+}
+
+.tipo-badge {
+  background-color: var(--color-primary);
+  color: var(--color-white);
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.btn-icon-small {
+  background: transparent;
+  border: none;
+  color: var(--color-gray-dark);
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-icon-small:hover {
+  background-color: var(--color-gray-light);
+  color: var(--color-primary);
+}
+
+.empty-state {
+  text-align: center;
+  padding: var(--spacing-xxl);
+  background: var(--color-white);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.empty-state svg {
+  color: var(--color-gray-medium);
+  margin-bottom: var(--spacing-md);
+}
+
+.empty-state p {
+  color: var(--color-gray-dark);
+  margin-bottom: var(--spacing-lg);
+  font-size: 1.1rem;
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 400px;
+  font-size: 1.2rem;
+  color: var(--color-gray-dark);
+}
+

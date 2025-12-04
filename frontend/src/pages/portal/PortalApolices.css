@@ -1,0 +1,170 @@
+.portal-apolices {
+  padding: 32px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.page-header {
+  margin-bottom: 32px;
+}
+
+.page-header h1 {
+  margin: 0 0 8px;
+  font-size: 32px;
+  color: #00225f;
+  font-weight: 600;
+}
+
+.page-header p {
+  margin: 0;
+  color: #666;
+  font-size: 16px;
+}
+
+.apolices-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 24px;
+}
+
+.apolice-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  transition: all 0.2s;
+}
+
+.apolice-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.apolice-card-header {
+  padding: 20px;
+  background: linear-gradient(135deg, #00225f 0%, #3d9b8e 100%);
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.apolice-number {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.status-badge {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.status-ativa {
+  background: rgba(61, 155, 142, 0.2);
+  color: #3d9b8e;
+}
+
+.status-inativa {
+  background: rgba(164, 35, 64, 0.2);
+  color: #a42340;
+}
+
+.apolice-card-body {
+  padding: 20px;
+}
+
+.apolice-info {
+  margin-bottom: 16px;
+}
+
+.apolice-info:last-child {
+  margin-bottom: 0;
+}
+
+.apolice-info label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.apolice-info p {
+  margin: 0;
+  font-size: 14px;
+  color: #333;
+}
+
+.apolice-card-footer {
+  padding: 16px 20px;
+  border-top: 1px solid #e9e9e9;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-outline {
+  background: transparent;
+  border: 1px solid #00225f;
+  color: #00225f;
+}
+
+.btn-outline:hover {
+  background: #00225f;
+  color: white;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 64px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.empty-state p {
+  margin: 16px 0 0;
+  font-size: 16px;
+  color: #666;
+}
+
+.loading {
+  text-align: center;
+  padding: 48px;
+  font-size: 16px;
+  color: #666;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+@media (max-width: 768px) {
+  .portal-apolices {
+    padding: 16px;
+  }
+
+  .apolices-grid {
+    grid-template-columns: 1fr;
+  }
+}
+

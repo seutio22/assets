@@ -1,0 +1,142 @@
+.usuarios-page {
+  max-width: 1600px;
+}
+
+.role-badge {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  background-color: var(--color-dark);
+  color: var(--color-white);
+}
+
+.status-active {
+  background-color: rgba(61, 155, 142, 0.1);
+  color: var(--color-secondary);
+}
+
+.status-inactive {
+  background-color: rgba(164, 35, 64, 0.1);
+  color: var(--color-primary);
+}
+
+.action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-icon {
+  background: none;
+  border: none;
+  padding: 6px;
+  cursor: pointer;
+  color: var(--color-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.btn-icon:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.btn-icon.btn-danger {
+  color: var(--color-primary);
+}
+
+.btn-icon.btn-danger:hover {
+  background-color: rgba(164, 35, 64, 0.1);
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: var(--color-dark);
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  transition: border-color 0.2s;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.form-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid #eee;
+}
+
+.roles-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 400px;
+  overflow-y: auto;
+  margin-bottom: 20px;
+}
+
+.role-checkbox {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.role-checkbox:hover {
+  background: #f9f9f9;
+  border-color: var(--color-primary);
+}
+
+.role-checkbox input[type="checkbox"] {
+  margin-top: 2px;
+  cursor: pointer;
+}
+
+.role-checkbox input[type="checkbox"]:checked + div {
+  color: var(--color-primary);
+}
+
+.role-checkbox div {
+  flex: 1;
+}
+
+.role-checkbox strong {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.role-checkbox small {
+  display: block;
+  font-size: 12px;
+  color: #666;
+  font-family: 'Courier New', monospace;
+}
+

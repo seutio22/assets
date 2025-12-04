@@ -1,0 +1,24 @@
+.atlas-logo {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.atlas-logo-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.atlas-logo-text {
+  font-weight: 700;
+  color: #00225f;
+  letter-spacing: 2px;
+  font-family: var(--font-family, 'Inter', sans-serif);
+}
+
+/* Estilo para o logo no sidebar (fundo escuro) */
+.sidebar-header .atlas-logo .atlas-logo-text {
+  color: var(--color-white, #ffffff);
+}
+

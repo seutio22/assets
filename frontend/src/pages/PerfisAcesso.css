@@ -1,0 +1,461 @@
+.perfis-page {
+  max-width: 1600px;
+}
+
+.page-subtitle {
+  color: #666;
+  font-size: 14px;
+  margin-top: 4px;
+}
+
+.roles-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 24px;
+  margin-top: 24px;
+}
+
+.role-card {
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 20px;
+  transition: all 0.2s;
+}
+
+.role-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.role-card-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.role-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #a42340 0%, #8b1e35 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  flex-shrink: 0;
+}
+
+.role-info {
+  flex: 1;
+}
+
+.role-info h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--color-dark);
+}
+
+.role-code {
+  font-size: 12px;
+  color: #666;
+  font-family: 'Courier New', monospace;
+  background: #f5f5f5;
+  padding: 2px 6px;
+  border-radius: 4px;
+  display: inline-block;
+  margin-top: 4px;
+}
+
+.system-badge {
+  background: #3d9b8e;
+  color: white;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.role-description {
+  color: #666;
+  font-size: 14px;
+  margin: 12px 0;
+  line-height: 1.5;
+}
+
+.role-stats {
+  display: flex;
+  gap: 16px;
+  margin: 16px 0;
+  padding: 12px 0;
+  border-top: 1px solid #eee;
+  border-bottom: 1px solid #eee;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: #666;
+}
+
+.role-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.role-permissions-summary {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #eee;
+  font-size: 13px;
+}
+
+.role-permissions-summary strong {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--color-dark);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.permissions-summary-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.summary-item {
+  display: flex;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.summary-resource {
+  font-weight: 600;
+  color: var(--color-dark);
+  min-width: 80px;
+}
+
+.summary-perms {
+  color: #666;
+  flex: 1;
+}
+
+.summary-more {
+  font-size: 11px;
+  color: #999;
+  font-style: italic;
+  margin-top: 4px;
+}
+
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 13px;
+}
+
+.permissions-manager {
+  max-height: 70vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.permissions-header {
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #eee;
+}
+
+.permissions-header p {
+  margin: 0;
+  color: #666;
+}
+
+.permissions-content {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+.permission-section {
+  margin-bottom: 32px;
+}
+
+.permission-section h4 {
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-dark);
+  padding-bottom: 8px;
+  border-bottom: 2px solid #eee;
+}
+
+.resource-description {
+  font-size: 13px;
+  color: #666;
+  margin: 0 0 16px 0;
+}
+
+.permissions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.permission-checkbox {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.permission-checkbox:hover {
+  background: #f9f9f9;
+  border-color: var(--color-primary);
+}
+
+.permission-checkbox input[type="checkbox"] {
+  margin-top: 2px;
+  cursor: pointer;
+}
+
+.permission-checkbox input[type="checkbox"]:checked + div {
+  color: var(--color-primary);
+}
+
+.permission-checkbox div {
+  flex: 1;
+}
+
+.permission-checkbox strong {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.permission-checkbox small {
+  display: block;
+  font-size: 12px;
+  color: #666;
+  line-height: 1.4;
+}
+
+/* Scrollbar personalizada */
+.permissions-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.permissions-content::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.permissions-content::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 4px;
+}
+
+.permissions-content::-webkit-scrollbar-thumb:hover {
+  background: #999;
+}
+
+/* Nova interface de matriz de permissões */
+.module-section {
+  margin-bottom: 40px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.module-header {
+  background: linear-gradient(135deg, #00225f 0%, #003d8f 100%);
+  color: white;
+  padding: 16px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.module-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.module-header small {
+  font-size: 12px;
+  opacity: 0.9;
+}
+
+.btn-select-all {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-select-all:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.resource-permissions-table {
+  border-bottom: 1px solid #e0e0e0;
+  padding: 20px;
+  background: white;
+}
+
+.resource-permissions-table:last-child {
+  border-bottom: none;
+}
+
+.resource-header {
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.resource-header h4 {
+  margin: 0 0 4px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-dark);
+}
+
+.resource-desc {
+  font-size: 13px;
+  color: #666;
+}
+
+.permissions-matrix {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.permission-category {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.category-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.permission-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+}
+
+.permission-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px 12px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: white;
+  position: relative;
+}
+
+.permission-cell:hover {
+  border-color: var(--color-primary);
+  background: #fff5f5;
+  transform: translateY(-2px);
+  box-shadow: 0 2px 8px rgba(164, 35, 64, 0.1);
+}
+
+.permission-cell input[type="checkbox"] {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: var(--color-primary);
+}
+
+.permission-cell input[type="checkbox"]:checked + .permission-icon {
+  transform: scale(1.1);
+}
+
+.permission-cell input[type="checkbox"]:checked ~ .permission-name {
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.permission-icon {
+  font-size: 32px;
+  margin-bottom: 8px;
+  transition: transform 0.2s;
+}
+
+.permission-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-dark);
+  text-align: center;
+  margin-bottom: 4px;
+}
+
+.permission-cell small {
+  font-size: 11px;
+  color: #999;
+  text-align: center;
+  line-height: 1.3;
+}
+
+.permission-cell.full-access {
+  background: linear-gradient(135deg, #f9f9f9 0%, #f0f0f0 100%);
+  border-color: #3d9b8e;
+}
+
+.permission-cell.full-access:hover {
+  background: linear-gradient(135deg, #f0f8f7 0%, #e8f5f3 100%);
+  border-color: #3d9b8e;
+}
+
+.permission-cell.full-access input[type="checkbox"]:checked ~ .permission-icon {
+  color: #3d9b8e;
+}
+
+.permission-cell.full-access input[type="checkbox"]:checked ~ .permission-name {
+  color: #3d9b8e;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .permission-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .module-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}
+

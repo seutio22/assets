@@ -1,0 +1,166 @@
+.fornecedores-page {
+  max-width: 1600px;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-lg);
+}
+
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  background: var(--color-white);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: 8px;
+  margin-bottom: var(--spacing-md);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.search-bar input {
+  flex: 1;
+  border: none;
+  padding: 0;
+}
+
+.table-container {
+  background: var(--color-white);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.data-table thead {
+  background-color: var(--color-dark);
+  color: var(--color-white);
+}
+
+.data-table th {
+  padding: var(--spacing-md);
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--color-white) !important;
+}
+
+.data-table tbody tr {
+  border-bottom: 1px solid var(--color-gray-medium);
+  transition: background-color 0.2s ease;
+}
+
+.data-table tbody tr:hover {
+  background-color: var(--color-gray-light);
+}
+
+.data-table td {
+  padding: var(--spacing-md);
+  font-size: 0.9rem;
+}
+
+.action-buttons {
+  display: flex;
+  gap: var(--spacing-xs);
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.status-badge.ativa {
+  background-color: rgba(61, 155, 142, 0.1);
+  color: var(--color-secondary);
+}
+
+.status-badge.inativa {
+  background-color: rgba(0, 0, 0, 0.1);
+  color: var(--color-gray-dark);
+}
+
+.status-badge.suspensa {
+  background-color: rgba(255, 193, 7, 0.2);
+  color: #856404;
+}
+
+.status-badge.cancelada {
+  background-color: rgba(164, 35, 64, 0.1);
+  color: var(--color-primary);
+}
+
+.status-badge.fornecedor {
+  background-color: rgba(0, 123, 255, 0.1);
+  color: #0056b3;
+}
+
+.status-badge.corretor {
+  background-color: rgba(61, 155, 142, 0.1);
+  color: var(--color-secondary);
+}
+
+.btn-icon {
+  background: transparent;
+  border: none;
+  color: var(--color-gray-dark);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.btn-icon:hover {
+  background-color: var(--color-gray-light);
+  color: var(--color-primary);
+}
+
+.submodule-buttons {
+  display: flex;
+  gap: 8px;
+  background: var(--color-gray-light);
+  padding: 4px;
+  border-radius: 8px;
+}
+
+.submodule-btn {
+  padding: 8px 20px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--color-gray-dark);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.submodule-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.5);
+  color: var(--color-dark);
+}
+
+.submodule-btn.active {
+  background: var(--color-white);
+  color: var(--color-dark);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  font-weight: 600;
+}
+
+.submodule-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
