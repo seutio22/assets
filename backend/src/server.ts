@@ -41,6 +41,7 @@ import { usuarioClienteRoutes } from './routes/usuario-cliente.routes';
 import { portalAuthRoutes } from './routes/portal-auth.routes';
 import { portalAtendimentoRoutes } from './routes/portal-atendimento.routes';
 import { permissionsRoutes } from './routes/permissions.routes';
+import { dashboardRoutes } from './routes/dashboard.routes';
 import { errorHandler } from './middlewares/errorHandler';
 import { rateLimiter } from './middlewares/rateLimiter';
 import { config } from './config/env';
@@ -83,6 +84,31 @@ app.use('/api/', rateLimiter);
 // Health check
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// Health check com teste de banco
+app.get('/health/db', async (req, res) => {
+  try {
+    const { PrismaClient } = await import('@prisma/client');
+    const prisma = new PrismaClient();
+    const start = Date.now();
+    await prisma.$queryRaw`SELECT 1`;
+    const duration = Date.now() - start;
+    await prisma.$disconnect();
+    res.json({ 
+      status: 'ok', 
+      database: 'connected',
+      responseTime: `${duration}ms`,
+      timestamp: new Date().toISOString() 
+    });
+  } catch (error: any) {
+    res.status(500).json({ 
+      status: 'error', 
+      database: 'disconnected',
+      error: error.message,
+      timestamp: new Date().toISOString() 
+    });
+  }
 });
 
 // Endpoint temporário para executar seed (REMOVER EM PRODUÇÃO)
@@ -136,6 +162,7 @@ app.post('/api/v1/seed', async (req, res) => {
 
 // Routes
 app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/dashboard', dashboardRoutes);
 app.use('/api/v1/grupos-economicos', grupoEconomicoRoutes);
 app.use('/api/v1/empresas', empresaRoutes);
 app.use('/api/v1/contatos', contatoRoutes);

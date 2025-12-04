@@ -119,6 +119,7 @@ model GrupoEconomico {
   tenant   Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   empresas Empresa[]
 
+  @@index([tenantId])
   @@map("grupos_economicos")
 }
 
@@ -139,6 +140,8 @@ model Empresa {
   enderecos      Endereco[]
 
   @@unique([tenantId, cnpj])
+  @@index([tenantId])
+  @@index([grupoEconomicoId])
   @@map("empresas")
 }
 
@@ -230,6 +233,7 @@ model Fornecedor {
   enderecos EnderecoFornecedor[]
   contatos  ContatoFornecedor[]
 
+  @@index([tenantId])
   @@map("fornecedores")
 }
 
@@ -328,6 +332,10 @@ model Apolice {
   UsuarioClienteApolice   UsuarioClienteApolice[]
   SolicitacaoAtendimento  SolicitacaoAtendimento[]
 
+  @@index([tenantId])
+  @@index([clienteId])
+  @@index([fornecedorId])
+  @@index([status])
   @@map("apolices")
 }
 
