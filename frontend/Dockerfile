@@ -2,7 +2,9 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# Copiar todos os arquivos
+# Se o Root Directory for 'frontend', o contexto já é frontend/
+# Copiar arquivos do contexto atual
+COPY package*.json ./
 COPY . .
 
 # Instalar dependências
