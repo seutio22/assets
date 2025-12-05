@@ -28,6 +28,18 @@ router.get('/:id', async (req: AuthRequest, res) => {
       where: {
         id,
         tenantId: req.tenantId
+      },
+      select: {
+        id: true,
+        nome: true,
+        email: true,
+        telefone: true,
+        cargo: true,
+        observacoes: true,
+        createdAt: true,
+        updatedAt: true,
+        empresaId: true,
+        tenantId: true
       }
     });
 
