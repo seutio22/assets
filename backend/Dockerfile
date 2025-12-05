@@ -2,14 +2,16 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# Copiar arquivos de dependências
+# Copiar arquivos de dependências do backend
 COPY package*.json ./
 
 # Instalar dependências
 RUN npm install
 
-# Copiar código fonte
-COPY . .
+# Copiar código fonte do backend
+COPY src ./src
+COPY prisma ./prisma
+COPY tsconfig.json ./
 
 # Gerar Prisma Client
 RUN npx prisma generate
