@@ -49,6 +49,9 @@ import { config } from './config/env';
 const app = express();
 const PORT = config.server.port;
 
+// Configurar trust proxy para Railway (necessário para rate limiting funcionar)
+app.set('trust proxy', true);
+
 // Middlewares - CORS configurado para aceitar TUDO
 // Nota: No Vercel, o OPTIONS é tratado no handler api/index.ts antes de chegar aqui
 app.use(cors({
