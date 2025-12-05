@@ -1,0 +1,51 @@
+===========================================
+MIGRAÇÃO RÁPIDA PARA RAILWAY
+===========================================
+
+1. ACESSE: https://railway.app
+   - Login com GitHub
+
+2. CRIAR PROJETO
+   - New Project → Deploy from GitHub repo
+   - Selecionar repositório
+
+3. BACKEND
+   - Selecionar pasta: backend
+   - Build: npm install && npm run build
+   - Start: npm start
+   - Variáveis:
+     * JWT_SECRET=sua-chave-secreta
+     * JWT_EXPIRES_IN=7d
+     * NODE_ENV=production
+     * PORT=3000
+
+4. BANCO DE DADOS
+   - + New → Database → PostgreSQL
+   - Railway preenche DATABASE_URL automaticamente
+
+5. MIGRATIONS E SEED
+   - Instalar Railway CLI: npm i -g @railway/cli
+   - railway login
+   - railway link
+   - railway run npx prisma migrate deploy
+   - railway run npm run prisma:seed
+
+6. FRONTEND
+   - + New → GitHub Repo → pasta frontend
+   - Build: npm install && npm run build
+   - Start: npx serve -s dist -l 3000
+   - Variável: VITE_API_URL=https://[URL-DO-BACKEND]
+
+7. DOMÍNIOS
+   - Settings → Generate Domain (backend e frontend)
+   - Atualizar VITE_API_URL com URL do backend
+   - Redeploy frontend
+
+8. TESTAR
+   - Acessar URL do frontend
+   - Login: admin@atlas.com / admin123
+
+===========================================
+CUSTO: ~$15/mês (Hobby Plan)
+===========================================
+

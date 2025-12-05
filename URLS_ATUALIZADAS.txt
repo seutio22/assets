@@ -1,0 +1,43 @@
+═══════════════════════════════════════════════════════════
+  URLs ATUALIZADAS - CONFIGURAR NO VERCEL
+═══════════════════════════════════════════════════════════
+
+✅ BACKEND REDEPLOYADO
+───────────────────────────────────────────────────────────
+Nova URL: https://backend-dlhqjrdy2-denisons-projects-6adcf8ff.vercel.app
+
+✅ FRONTEND
+───────────────────────────────────────────────────────────
+URL: https://frontend-mi1ofhydp-denisons-projects-6adcf8ff.vercel.app
+
+═══════════════════════════════════════════════════════════
+  ATUALIZAR VARIÁVEIS NO VERCEL
+═══════════════════════════════════════════════════════════
+
+1️⃣ BACKEND - CORS_ORIGIN
+───────────────────────────────────────────────────────────
+Acesse: https://vercel.com/denisons-projects-6adcf8ff/backend/settings/environment-variables
+
+Edite a variável CORS_ORIGIN:
+https://frontend-mi1ofhydp-denisons-projects-6adcf8ff.vercel.app
+
+2️⃣ FRONTEND - VITE_API_URL
+───────────────────────────────────────────────────────────
+Acesse: https://vercel.com/denisons-projects-6adcf8ff/frontend/settings/environment-variables
+
+Edite a variável VITE_API_URL:
+https://backend-dlhqjrdy2-denisons-projects-6adcf8ff.vercel.app/api/v1
+
+═══════════════════════════════════════════════════════════
+  APÓS ATUALIZAR - REDEPLOY
+═══════════════════════════════════════════════════════════
+
+cd backend
+npx vercel --prod --yes
+
+cd ../frontend
+npx vercel --prod --yes
+
+═══════════════════════════════════════════════════════════
+
+

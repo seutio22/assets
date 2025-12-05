@@ -1,0 +1,62 @@
+═══════════════════════════════════════════════════════════
+  COMANDOS VERCEL CLI - ATLAS SISTEMA GESTÃO
+═══════════════════════════════════════════════════════════
+
+✅ Vercel CLI instalado com sucesso!
+Versão: 48.12.1
+
+⚠️ IMPORTANTE: Use "npx vercel" em vez de apenas "vercel"
+(O PowerShell pode não reconhecer o comando diretamente)
+
+═══════════════════════════════════════════════════════════
+  COMANDOS PRINCIPAIS
+═══════════════════════════════════════════════════════════
+
+1. Fazer login no Vercel:
+   npx vercel login
+
+2. Deploy do Backend:
+   cd backend
+   npx vercel --prod
+
+3. Deploy do Frontend:
+   cd frontend
+   npx vercel --prod
+
+4. Ver projetos:
+   npx vercel list
+
+5. Ver variáveis de ambiente:
+   npx vercel env ls
+
+6. Adicionar variável de ambiente:
+   npx vercel env add NOME_DA_VARIAVEL production
+
+═══════════════════════════════════════════════════════════
+  PRÓXIMOS PASSOS
+═══════════════════════════════════════════════════════════
+
+1. Fazer login:
+   npx vercel login
+
+2. Configurar banco de dados PostgreSQL
+   (Vercel Postgres, Supabase ou Railway)
+
+3. Executar migrations:
+   cd backend
+   $env:DATABASE_URL="sua-url-postgresql"
+   npm run prisma:generate
+   npx prisma migrate deploy
+   npm run prisma:seed
+
+4. Deploy do backend:
+   cd backend
+   npx vercel --prod
+
+5. Deploy do frontend:
+   cd frontend
+   npx vercel --prod
+
+═══════════════════════════════════════════════════════════
+
+

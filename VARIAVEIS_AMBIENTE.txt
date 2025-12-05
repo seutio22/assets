@@ -1,0 +1,82 @@
+═══════════════════════════════════════════════════════════
+  VARIÁVEIS DE AMBIENTE - CONFIGURAR NO VERCEL
+═══════════════════════════════════════════════════════════
+
+✅ JWT_SECRET GERADO:
+aY9RACY1TzSz9YHHnyHcDfHQUuf3WSB1I+zQvMEnjtU=
+
+═══════════════════════════════════════════════════════════
+  BACKEND - VARIÁVEIS DE AMBIENTE
+═══════════════════════════════════════════════════════════
+
+Acesse: https://vercel.com/denisons-projects-6adcf8ff/backend/settings/environment-variables
+
+Adicione estas variáveis (Production):
+
+1. DATABASE_URL
+   Valor: [URL do seu banco PostgreSQL]
+   Exemplo: postgresql://usuario:senha@host:porta/banco?schema=public
+   
+   ⚠️ IMPORTANTE: Você precisa criar um banco PostgreSQL primeiro!
+   Opções:
+   - Vercel Postgres: https://vercel.com/storage/postgres
+   - Supabase: https://supabase.com
+   - Railway: https://railway.app
+
+2. JWT_SECRET
+   Valor: aY9RACY1TzSz9YHHnyHcDfHQUuf3WSB1I+zQvMEnjtU=
+
+3. JWT_EXPIRES_IN
+   Valor: 7d
+
+4. NODE_ENV
+   Valor: production
+
+5. CORS_ORIGIN
+   Valor: https://frontend-50axp2516-denisons-projects-6adcf8ff.vercel.app
+
+6. PORT
+   Valor: 3000
+
+═══════════════════════════════════════════════════════════
+  FRONTEND - VARIÁVEIS DE AMBIENTE
+═══════════════════════════════════════════════════════════
+
+Acesse: https://vercel.com/denisons-projects-6adcf8ff/frontend/settings/environment-variables
+
+Adicione esta variável (Production):
+
+1. VITE_API_URL
+   Valor: https://backend-4mdya6spj-denisons-projects-6adcf8ff.vercel.app/api/v1
+
+═══════════════════════════════════════════════════════════
+  PRÓXIMOS PASSOS APÓS CONFIGURAR VARIÁVEIS
+═══════════════════════════════════════════════════════════
+
+1. Criar banco PostgreSQL e copiar DATABASE_URL
+
+2. Executar migrations no banco:
+   cd backend
+   $env:DATABASE_URL="sua-url-postgresql"
+   npm run prisma:generate
+   npx prisma migrate deploy
+   npm run prisma:seed
+
+3. Fazer redeploy do backend:
+   cd backend
+   npx vercel --prod --yes
+
+4. Fazer redeploy do frontend:
+   cd frontend
+   npx vercel --prod --yes
+
+═══════════════════════════════════════════════════════════
+  URLs DE PRODUÇÃO
+═══════════════════════════════════════════════════════════
+
+Backend:  https://backend-4mdya6spj-denisons-projects-6adcf8ff.vercel.app
+Frontend: https://frontend-50axp2516-denisons-projects-6adcf8ff.vercel.app
+
+═══════════════════════════════════════════════════════════
+
+

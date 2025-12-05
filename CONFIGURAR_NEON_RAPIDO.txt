@@ -1,0 +1,51 @@
+═══════════════════════════════════════════════════════════
+  CONFIGURAR NEON - GUIA RÁPIDO
+═══════════════════════════════════════════════════════════
+
+1️⃣ CRIAR BANCO NO NEON
+───────────────────────────────────────────────────────────
+1. Acesse: https://neon.tech
+2. Sign Up (Google/GitHub)
+3. Create Project
+4. Nome: atlas-prod
+5. Region: US East (ou mais próxima)
+6. Copie a DATABASE_URL gerada
+
+2️⃣ ADICIONAR VARIÁVEIS NO VERCEL BACKEND
+───────────────────────────────────────────────────────────
+Acesse: https://vercel.com/denisons-projects-6adcf8ff/backend/settings/environment-variables
+
+Adicione (Production):
+✓ DATABASE_URL = [URL do Neon]
+✓ JWT_SECRET = aY9RACY1TzSz9YHHnyHcDfHQUuf3WSB1I+zQvMEnjtU=
+✓ JWT_EXPIRES_IN = 7d
+✓ NODE_ENV = production
+✓ CORS_ORIGIN = https://frontend-50axp2516-denisons-projects-6adcf8ff.vercel.app
+✓ PORT = 3000
+
+3️⃣ ADICIONAR VARIÁVEL NO VERCEL FRONTEND
+───────────────────────────────────────────────────────────
+Acesse: https://vercel.com/denisons-projects-6adcf8ff/frontend/settings/environment-variables
+
+Adicione (Production):
+✓ VITE_API_URL = https://backend-4mdya6spj-denisons-projects-6adcf8ff.vercel.app/api/v1
+
+4️⃣ EXECUTAR MIGRATIONS
+───────────────────────────────────────────────────────────
+cd backend
+$env:DATABASE_URL="url-do-neon"
+npm run prisma:generate
+npx prisma migrate deploy
+npm run prisma:seed
+
+5️⃣ REDEPLOY
+───────────────────────────────────────────────────────────
+cd backend
+npx vercel --prod --yes
+
+cd ../frontend
+npx vercel --prod --yes
+
+═══════════════════════════════════════════════════════════
+
+
