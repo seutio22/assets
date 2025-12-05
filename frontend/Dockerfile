@@ -1,17 +1,15 @@
-# Este Dockerfile força o Railway a usar Nixpacks
-# O Railway detectará o nixpacks.toml e usará Nixpacks automaticamente
 FROM node:20-alpine
 
 WORKDIR /app
 
-# Copiar package.json
-COPY package*.json ./
+# Copiar package.json do frontend
+COPY frontend/package*.json ./
 
 # Instalar dependências
 RUN npm install
 
-# Copiar código
-COPY . .
+# Copiar código do frontend
+COPY frontend/ ./
 
 # Build
 RUN npm run build
