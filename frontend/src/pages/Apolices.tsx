@@ -34,6 +34,7 @@ const Apolices = () => {
   const [totalPages, setTotalPages] = useState(0)
   const [showModal, setShowModal] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
+  const [hasUnsavedData, setHasUnsavedData] = useState(false)
   
   // Debounce da busca para evitar múltiplas requisições
   const debouncedSearch = useDebounce(search, 500)
@@ -124,18 +125,33 @@ const Apolices = () => {
 
   const openNew = () => {
     setEditingId(null)
+    setHasUnsavedData(false)
     setShowModal(true)
   }
 
   const openEdit = (id: string) => {
     setEditingId(id)
+    setHasUnsavedData(false)
     setShowModal(true)
   }
 
   const handleSuccess = () => {
     setShowModal(false)
     setEditingId(null)
+    setHasUnsavedData(false)
     fetchApolices()
+  }
+
+  const handleCloseModal = () => {
+    if (hasUnsavedData) {
+      const confirmClose = window.confirm('Você tem dados não salvos no formulário. Deseja realmente fechar? Os dados serão salvos como rascunho e poderão ser recuperados na próxima vez que abrir o formulário.')
+      if (!confirmClose) {
+        return
+      }
+    }
+    setShowModal(false)
+    setEditingId(null)
+    setHasUnsavedData(false)
   }
 
   return (
@@ -302,21 +318,17 @@ const Apolices = () => {
 
           <Modal
             isOpen={showModal}
-            onClose={() => {
-              setShowModal(false)
-              setEditingId(null)
-            }}
+            onClose={handleCloseModal}
             title=""
             size="large"
+            hasUnsavedData={hasUnsavedData}
           >
             <ApoliceFormWizard
               key={editingId || 'new'} // Força remontagem quando editingId muda
               apoliceId={editingId || undefined}
               onSuccess={handleSuccess}
-              onCancel={() => {
-                setShowModal(false)
-                setEditingId(null)
-              }}
+              onCancel={handleCloseModal}
+              onDataChange={(hasData) => setHasUnsavedData(hasData)}
             />
           </Modal>
     </div>

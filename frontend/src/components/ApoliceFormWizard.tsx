@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { api } from '../services/api'
 import { fetchProdutos as fetchProdutosService, fetchPortes as fetchPortesService } from '../services/structuralData'
 import { ChevronLeft, ChevronRight, Check } from 'lucide-react'
@@ -8,11 +8,15 @@ interface ApoliceFormWizardProps {
   apoliceId?: string
   onSuccess: () => void
   onCancel: () => void
+  onDataChange?: (hasUnsavedData: boolean) => void
 }
 
 type Step = 'basicos' | 'produto' | 'fiscais' | 'vigencias'
 
-const ApoliceFormWizard = ({ apoliceId, onSuccess, onCancel }: ApoliceFormWizardProps) => {
+const STORAGE_KEY = 'apolice_form_draft'
+const STORAGE_KEY_STEP = 'apolice_form_draft_step'
+
+const ApoliceFormWizard = ({ apoliceId, onSuccess, onCancel, onDataChange }: ApoliceFormWizardProps) => {
   const [currentStep, setCurrentStep] = useState<Step>('basicos')
   const [formData, setFormData] = useState({
     grupoEconomicoId: '',
@@ -37,6 +41,7 @@ const ApoliceFormWizard = ({ apoliceId, onSuccess, onCancel }: ApoliceFormWizard
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [completedSteps, setCompletedSteps] = useState<Set<Step>>(new Set())
+  const hasLoadedFromStorageRef = useRef(false)
 
   const steps: { key: Step; label: string; description: string }[] = [
     { key: 'basicos', label: 'Dados Básicos', description: 'Informações principais da apólice' },
@@ -44,6 +49,60 @@ const ApoliceFormWizard = ({ apoliceId, onSuccess, onCancel }: ApoliceFormWizard
     { key: 'fiscais', label: 'Dados Fiscais', description: 'Inscrições e porte' },
     { key: 'vigencias', label: 'Vigências', description: 'Datas de vigência' }
   ]
+
+  // Funções para gerenciar localStorage
+  const saveDraftToStorage = (data: typeof formData, step: Step) => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
+      localStorage.setItem(STORAGE_KEY_STEP, step)
+      // Notificar se há dados não salvos
+      const hasData = !!(data.numero || data.grupoEconomicoId || data.clienteId || data.fornecedorId)
+      onDataChange?.(hasData)
+    } catch (err) {
+      console.error('Erro ao salvar rascunho:', err)
+    }
+  }
+
+  const loadDraftFromStorage = (): { data: typeof formData | null; step: Step | null } => {
+    try {
+      const savedData = localStorage.getItem(STORAGE_KEY)
+      const savedStep = localStorage.getItem(STORAGE_KEY_STEP) as Step | null
+      if (savedData) {
+        return { data: JSON.parse(savedData), step: savedStep }
+      }
+    } catch (err) {
+      console.error('Erro ao carregar rascunho:', err)
+    }
+    return { data: null, step: null }
+  }
+
+  const clearDraftFromStorage = () => {
+    try {
+      localStorage.removeItem(STORAGE_KEY)
+      localStorage.removeItem(STORAGE_KEY_STEP)
+      onDataChange?.(false)
+    } catch (err) {
+      console.error('Erro ao limpar rascunho:', err)
+    }
+  }
+
+  const hasUnsavedData = () => {
+    return !!(formData.numero || formData.grupoEconomicoId || formData.clienteId || formData.fornecedorId || 
+              formData.produto || formData.codigoCNAE || formData.ramoAtividade || 
+              formData.inscricaoEstadual || formData.inscricaoMunicipal || formData.porteCliente ||
+              formData.dataVigenciaMDS || formData.dataVigenciaContratoInicio)
+  }
+
+  // Autosalvamento quando formData ou currentStep mudarem (apenas para novas apólices)
+  useEffect(() => {
+    if (!apoliceId && hasLoadedFromStorageRef.current) {
+      // Aguardar um pouco antes de salvar para evitar muitas operações
+      const timeoutId = setTimeout(() => {
+        saveDraftToStorage(formData, currentStep)
+      }, 500)
+      return () => clearTimeout(timeoutId)
+    }
+  }, [formData, currentStep, apoliceId])
 
   // Carregar dados iniciais sempre que o componente montar
   useEffect(() => {
@@ -62,10 +121,25 @@ const ApoliceFormWizard = ({ apoliceId, onSuccess, onCancel }: ApoliceFormWizard
       // Se houver apoliceId, carregar a apólice após produtos e portes estarem prontos
       if (apoliceId) {
         console.log('ApoliceId encontrado, aguardando dados e carregando apólice...')
+        // Limpar rascunho se estiver editando (não salvamos rascunhos de edição)
+        clearDraftFromStorage()
+        hasLoadedFromStorageRef.current = true
         // Pequeno delay para garantir que dados estejam no estado
         setTimeout(() => {
           fetchApolice()
         }, 300)
+      } else {
+        // Se não houver apoliceId, tentar recuperar rascunho salvo
+        const { data: savedData, step: savedStep } = loadDraftFromStorage()
+        if (savedData) {
+          console.log('Rascunho encontrado, restaurando dados...')
+          setFormData(savedData)
+          if (savedStep) {
+            setCurrentStep(savedStep)
+          }
+          // O useEffect que monitora grupoEconomicoId vai carregar as empresas automaticamente
+        }
+        hasLoadedFromStorageRef.current = true
       }
     }
     
@@ -288,6 +362,8 @@ const ApoliceFormWizard = ({ apoliceId, onSuccess, onCancel }: ApoliceFormWizard
       } else {
         await api.post('/apolices', data)
       }
+      // Limpar rascunho após salvar com sucesso
+      clearDraftFromStorage()
       onSuccess()
     } catch (err: any) {
       const errorMessage = err.response?.data?.error || 
@@ -299,6 +375,12 @@ const ApoliceFormWizard = ({ apoliceId, onSuccess, onCancel }: ApoliceFormWizard
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleCancel = () => {
+    // Limpar rascunho quando cancelar propositalmente
+    clearDraftFromStorage()
+    onCancel()
   }
 
   const getCurrentStepIndex = () => {
@@ -611,7 +693,7 @@ const ApoliceFormWizard = ({ apoliceId, onSuccess, onCancel }: ApoliceFormWizard
         <button
           type="button"
           className="btn btn-outline"
-          onClick={onCancel}
+          onClick={handleCancel}
           disabled={loading}
         >
           Cancelar
