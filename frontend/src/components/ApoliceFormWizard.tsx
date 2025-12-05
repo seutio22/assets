@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { api } from '../services/api'
-import { fetchProdutos, fetchPortes } from '../services/structuralData'
+import { fetchProdutos as fetchProdutosService, fetchPortes as fetchPortesService } from '../services/structuralData'
 import { ChevronLeft, ChevronRight, Check } from 'lucide-react'
 import './ApoliceFormWizard.css'
 
@@ -130,7 +130,7 @@ const ApoliceFormWizard = ({ apoliceId, onSuccess, onCancel }: ApoliceFormWizard
   const fetchProdutos = async () => {
     try {
       console.log('Carregando produtos do módulo Dados...')
-      const produtosData = await fetchProdutos()
+      const produtosData = await fetchProdutosService()
       console.log(`${produtosData.length} produtos carregados:`, produtosData.map(p => p.valor))
       setProdutos(produtosData)
       
@@ -146,7 +146,7 @@ const ApoliceFormWizard = ({ apoliceId, onSuccess, onCancel }: ApoliceFormWizard
   const fetchPortes = async () => {
     try {
       console.log('Carregando portes do módulo Dados...')
-      const portesData = await fetchPortes()
+      const portesData = await fetchPortesService()
       console.log(`${portesData.length} portes carregados:`, portesData.map(p => p.valor))
       setPortes(portesData)
       
