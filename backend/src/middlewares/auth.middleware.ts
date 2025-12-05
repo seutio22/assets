@@ -4,6 +4,10 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
+// Cache simples para autenticação (TTL: 5 minutos)
+const authCache = new Map<string, { user: any; tenant: any; expires: number }>();
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutos
+
 export interface AuthRequest extends Request {
   userId?: string;
   tenantId?: string;
@@ -36,29 +40,47 @@ export const authenticateToken = async (
       role: string;
     };
 
-    // Verificar se o usuário ainda existe e está ativo
-    try {
-      const user = await prisma.user.findUnique({
-        where: { id: decoded.userId },
-        select: { id: true, active: true, tenantId: true, role: true }
-      });
+    // Verificar cache primeiro
+    const cacheKey = `${decoded.userId}:${decoded.tenantId}`;
+    const cached = authCache.get(cacheKey);
+    
+    if (cached && cached.expires > Date.now()) {
+      // Usar dados do cache
+      req.userId = cached.user.id;
+      req.tenantId = cached.tenant.id;
+      req.role = cached.user.role;
+    } else {
+      // Verificar se o usuário ainda existe e está ativo
+      try {
+        const [user, tenant] = await Promise.all([
+          prisma.user.findUnique({
+            where: { id: decoded.userId },
+            select: { id: true, active: true, tenantId: true, role: true }
+          }),
+          prisma.tenant.findUnique({
+            where: { id: decoded.tenantId },
+            select: { id: true }
+          })
+        ]);
 
-      if (!user || !user.active) {
-        return res.status(401).json({ error: 'Usuário inválido ou inativo' });
-      }
+        if (!user || !user.active) {
+          return res.status(401).json({ error: 'Usuário inválido ou inativo' });
+        }
 
-      // Verificar se o tenant ainda existe
-      const tenant = await prisma.tenant.findUnique({
-        where: { id: decoded.tenantId }
-      });
+        if (!tenant) {
+          return res.status(401).json({ error: 'Tenant inválido' });
+        }
 
-      if (!tenant) {
-        return res.status(401).json({ error: 'Tenant inválido' });
-      }
+        // Armazenar no cache
+        authCache.set(cacheKey, {
+          user,
+          tenant,
+          expires: Date.now() + CACHE_TTL
+        });
 
-      req.userId = decoded.userId;
-      req.tenantId = decoded.tenantId;
-      req.role = decoded.role;
+        req.userId = user.id;
+        req.tenantId = tenant.id;
+        req.role = user.role;
     } catch (dbError: any) {
       console.error('Erro ao verificar usuário/tenant:', dbError);
       return res.status(500).json({ 

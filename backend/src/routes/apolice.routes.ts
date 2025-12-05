@@ -80,8 +80,11 @@ router.get('/', async (req: AuthRequest, res) => {
     // SQLite não suporta contains case-insensitive, então usamos uma busca simples
     // Se necessário, podemos fazer uma busca case-insensitive manualmente
 
-    console.log('Buscando apólices com where:', JSON.stringify(where, null, 2));
-    console.log('Tenant ID:', req.tenantId);
+    // Logs removidos em produção para melhor performance
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Buscando apólices com where:', JSON.stringify(where, null, 2));
+      console.log('Tenant ID:', req.tenantId);
+    }
     
     let data;
     let total;
