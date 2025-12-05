@@ -246,14 +246,38 @@ if (typeof module !== 'undefined' && module.exports) {
   module.exports = app;
 }
 
+// Tratamento de erros não capturados para evitar crash
+process.on('uncaughtException', (error) => {
+  console.error('⚠️  Uncaught Exception:', error);
+  // Não finalizar o processo imediatamente
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('⚠️  Unhandled Rejection at:', promise, 'reason:', reason);
+  // Não finalizar o processo imediatamente
+});
+
 // Iniciar servidor (Railway ou desenvolvimento local)
 // No Railway, sempre iniciar o servidor
 // No Vercel, não iniciar (usa serverless functions)
 if (!process.env.VERCEL) {
-  app.listen(PORT, () => {
-    console.log(`🚀 Server running on port ${PORT}`);
-    console.log(`📝 Environment: ${process.env.NODE_ENV || 'development'}`);
-  });
+  try {
+    const server = app.listen(PORT, () => {
+      console.log(`🚀 Server running on port ${PORT}`);
+      console.log(`📝 Environment: ${process.env.NODE_ENV || 'development'}`);
+    });
+
+    // Tratamento de erros no servidor
+    server.on('error', (error: any) => {
+      console.error('❌ Erro no servidor:', error);
+      if (error.code === 'EADDRINUSE') {
+        console.log(`⚠️  Porta ${PORT} já está em uso`);
+      }
+    });
+  } catch (error: any) {
+    console.error('❌ Erro ao iniciar servidor:', error);
+    process.exit(1);
+  }
 }
 
 
