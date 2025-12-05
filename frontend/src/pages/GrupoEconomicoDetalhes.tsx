@@ -19,8 +19,10 @@ interface Empresa {
   cnpj: string
   razaoSocial: string
   dataCadastro: string
-  contatos: Contato[]
-  enderecos: Endereco[]
+  contatos?: Contato[]
+  enderecos?: Endereco[]
+  contatosCount?: number
+  enderecosCount?: number
 }
 
 interface Contato {
@@ -62,13 +64,85 @@ const GrupoEconomicoDetalhes = () => {
   // Estado para controlar expansão de contatos e endereços por empresa
   // Formato: { empresaId: { contatos: boolean, enderecos: boolean } }
   const [expandedSections, setExpandedSections] = useState<Record<string, { contatos: boolean; enderecos: boolean }>>({})
+  const [loadingSections, setLoadingSections] = useState<Record<string, { contatos: boolean; enderecos: boolean }>>({})
+  const [loadedSections, setLoadedSections] = useState<Record<string, { contatos: boolean; enderecos: boolean }>>({})
   
-  const toggleSection = (empresaId: string, section: 'contatos' | 'enderecos') => {
+  const toggleSection = async (empresaId: string, section: 'contatos' | 'enderecos') => {
+    const isCurrentlyExpanded = expandedSections[empresaId]?.[section]
+    
+    // Se está fechando, apenas fechar
+    if (isCurrentlyExpanded) {
+      setExpandedSections(prev => ({
+        ...prev,
+        [empresaId]: {
+          ...prev[empresaId],
+          [section]: false
+        }
+      }))
+      return
+    }
+    
+    // Se está abrindo, verificar se precisa carregar dados
+    const alreadyLoaded = loadedSections[empresaId]?.[section]
+    
+    if (!alreadyLoaded) {
+      // Marcar como carregando
+      setLoadingSections(prev => ({
+        ...prev,
+        [empresaId]: {
+          ...prev[empresaId],
+          [section]: true
+        }
+      }))
+      
+      try {
+        let data: Contato[] | Endereco[] = []
+        if (section === 'contatos') {
+          const response = await api.get(`/contatos?empresaId=${empresaId}`)
+          data = response.data.data || []
+        } else {
+          const response = await api.get(`/enderecos?empresaId=${empresaId}`)
+          data = response.data.data || []
+        }
+        
+        // Atualizar empresa com os dados carregados
+        setEmpresas(prev => prev.map(emp => {
+          if (emp.id === empresaId) {
+            return {
+              ...emp,
+              [section]: data
+            }
+          }
+          return emp
+        }))
+        
+        // Marcar como carregado
+        setLoadedSections(prev => ({
+          ...prev,
+          [empresaId]: {
+            ...prev[empresaId],
+            [section]: true
+          }
+        }))
+      } catch (error) {
+        console.error(`Erro ao carregar ${section}:`, error)
+      } finally {
+        setLoadingSections(prev => ({
+          ...prev,
+          [empresaId]: {
+            ...prev[empresaId],
+            [section]: false
+          }
+        }))
+      }
+    }
+    
+    // Expandir a seção
     setExpandedSections(prev => ({
       ...prev,
       [empresaId]: {
         ...prev[empresaId],
-        [section]: !prev[empresaId]?.[section]
+        [section]: true
       }
     }))
   }
@@ -95,22 +169,14 @@ const GrupoEconomicoDetalhes = () => {
       const response = await api.get(`/empresas?grupoEconomicoId=${id}`)
       const empresasData = response.data.data || []
       
-      // Carregar contatos e endereços para cada empresa
-      const empresasCompleto = await Promise.all(
-        empresasData.map(async (empresa: Empresa) => {
-          const [contatosRes, enderecosRes] = await Promise.all([
-            api.get(`/contatos?empresaId=${empresa.id}`),
-            api.get(`/enderecos?empresaId=${empresa.id}`)
-          ])
-          return {
-            ...empresa,
-            contatos: contatosRes.data.data || [],
-            enderecos: enderecosRes.data.data || []
-          }
-        })
-      )
+      // Carregar APENAS dados básicos da empresa (não contatos/endereços)
+      const empresasBasicas = empresasData.map((empresa: any) => ({
+        ...empresa,
+        contatos: [], // Array vazio - será carregado quando expandir
+        enderecos: [] // Array vazio - será carregado quando expandir
+      }))
       
-      setEmpresas(empresasCompleto)
+      setEmpresas(empresasBasicas)
     } catch (error) {
       console.error('Erro ao carregar empresas:', error)
     } finally {
@@ -143,27 +209,45 @@ const GrupoEconomicoDetalhes = () => {
     }
   }
 
-  const handleDeleteContato = async (contatoId: string) => {
+  const handleDeleteContato = async (contatoId: string, empresaId: string) => {
     if (!window.confirm('Tem certeza que deseja excluir este contato?')) {
       return
     }
 
     try {
       await api.delete(`/contatos/${contatoId}`)
-      fetchEmpresas()
+      // Recarregar apenas os contatos desta empresa se estiver expandido
+      if (expandedSections[empresaId]?.contatos) {
+        const response = await api.get(`/contatos?empresaId=${empresaId}`)
+        setEmpresas(prev => prev.map(emp => {
+          if (emp.id === empresaId) {
+            return { ...emp, contatos: response.data.data || [] }
+          }
+          return emp
+        }))
+      }
     } catch (err: any) {
       alert(err.response?.data?.error || 'Erro ao excluir contato')
     }
   }
 
-  const handleDeleteEndereco = async (enderecoId: string) => {
+  const handleDeleteEndereco = async (enderecoId: string, empresaId: string) => {
     if (!window.confirm('Tem certeza que deseja excluir este endereço?')) {
       return
     }
 
     try {
       await api.delete(`/enderecos/${enderecoId}`)
-      fetchEmpresas()
+      // Recarregar apenas os endereços desta empresa se estiver expandido
+      if (expandedSections[empresaId]?.enderecos) {
+        const response = await api.get(`/enderecos?empresaId=${empresaId}`)
+        setEmpresas(prev => prev.map(emp => {
+          if (emp.id === empresaId) {
+            return { ...emp, enderecos: response.data.data || [] }
+          }
+          return emp
+        }))
+      }
     } catch (err: any) {
       alert(err.response?.data?.error || 'Erro ao excluir endereço')
     }
@@ -175,18 +259,66 @@ const GrupoEconomicoDetalhes = () => {
     fetchEmpresas()
   }
 
-  const handleContatoSuccess = () => {
+  const handleContatoSuccess = async () => {
     setShowContatoModal(false)
     setEditingContatoId(null)
+    const empresaId = selectedEmpresaId
     setSelectedEmpresaId(null)
-    fetchEmpresas()
+    
+    // Recarregar apenas os contatos da empresa específica se estiver expandido
+    if (empresaId && expandedSections[empresaId]?.contatos) {
+      try {
+        const response = await api.get(`/contatos?empresaId=${empresaId}`)
+        setEmpresas(prev => prev.map(emp => {
+          if (emp.id === empresaId) {
+            return { ...emp, contatos: response.data.data || [] }
+          }
+          return emp
+        }))
+      } catch (error) {
+        console.error('Erro ao recarregar contatos:', error)
+      }
+    } else if (empresaId) {
+      // Se não está expandido, marcar como não carregado para carregar na próxima vez
+      setLoadedSections(prev => ({
+        ...prev,
+        [empresaId]: {
+          ...prev[empresaId],
+          contatos: false
+        }
+      }))
+    }
   }
 
-  const handleEnderecoSuccess = () => {
+  const handleEnderecoSuccess = async () => {
     setShowEnderecoModal(false)
     setEditingEnderecoId(null)
+    const empresaId = selectedEmpresaId
     setSelectedEmpresaId(null)
-    fetchEmpresas()
+    
+    // Recarregar apenas os endereços da empresa específica se estiver expandido
+    if (empresaId && expandedSections[empresaId]?.enderecos) {
+      try {
+        const response = await api.get(`/enderecos?empresaId=${empresaId}`)
+        setEmpresas(prev => prev.map(emp => {
+          if (emp.id === empresaId) {
+            return { ...emp, enderecos: response.data.data || [] }
+          }
+          return emp
+        }))
+      } catch (error) {
+        console.error('Erro ao recarregar endereços:', error)
+      }
+    } else if (empresaId) {
+      // Se não está expandido, marcar como não carregado para carregar na próxima vez
+      setLoadedSections(prev => ({
+        ...prev,
+        [empresaId]: {
+          ...prev[empresaId],
+          enderecos: false
+        }
+      }))
+    }
   }
 
   const openNewEmpresa = () => {
@@ -294,8 +426,10 @@ const GrupoEconomicoDetalhes = () => {
                         onClick={() => toggleSection(empresa.id, 'contatos')}
                       >
                         <User size={20} />
-                        <h4>Contatos {empresa.contatos.length > 0 && `(${empresa.contatos.length})`}</h4>
-                        {expandedSections[empresa.id]?.contatos ? (
+                        <h4>Contatos {empresa.contatos && empresa.contatos.length > 0 && `(${empresa.contatos.length})`}</h4>
+                        {loadingSections[empresa.id]?.contatos ? (
+                          <span style={{ fontSize: '12px' }}>Carregando...</span>
+                        ) : expandedSections[empresa.id]?.contatos ? (
                           <ChevronUp size={20} />
                         ) : (
                           <ChevronDown size={20} />
@@ -311,7 +445,9 @@ const GrupoEconomicoDetalhes = () => {
                     </div>
                     {expandedSections[empresa.id]?.contatos && (
                       <div className="section-content">
-                        {empresa.contatos.length === 0 ? (
+                        {loadingSections[empresa.id]?.contatos ? (
+                          <p className="empty-subsection">Carregando contatos...</p>
+                        ) : !empresa.contatos || empresa.contatos.length === 0 ? (
                           <p className="empty-subsection">Nenhum contato cadastrado</p>
                         ) : (
                           <table className="sub-table">
@@ -341,7 +477,7 @@ const GrupoEconomicoDetalhes = () => {
                                       </button>
                                       <button 
                                         className="btn-icon-small"
-                                        onClick={() => handleDeleteContato(contato.id)}
+                                        onClick={() => handleDeleteContato(contato.id, empresa.id)}
                                       >
                                         <Trash2 size={14} />
                                       </button>
@@ -363,8 +499,10 @@ const GrupoEconomicoDetalhes = () => {
                         onClick={() => toggleSection(empresa.id, 'enderecos')}
                       >
                         <MapPin size={20} />
-                        <h4>Endereços {empresa.enderecos.length > 0 && `(${empresa.enderecos.length})`}</h4>
-                        {expandedSections[empresa.id]?.enderecos ? (
+                        <h4>Endereços {empresa.enderecos && empresa.enderecos.length > 0 && `(${empresa.enderecos.length})`}</h4>
+                        {loadingSections[empresa.id]?.enderecos ? (
+                          <span style={{ fontSize: '12px' }}>Carregando...</span>
+                        ) : expandedSections[empresa.id]?.enderecos ? (
                           <ChevronUp size={20} />
                         ) : (
                           <ChevronDown size={20} />
@@ -380,7 +518,9 @@ const GrupoEconomicoDetalhes = () => {
                     </div>
                     {expandedSections[empresa.id]?.enderecos && (
                       <div className="section-content">
-                        {empresa.enderecos.length === 0 ? (
+                        {loadingSections[empresa.id]?.enderecos ? (
+                          <p className="empty-subsection">Carregando endereços...</p>
+                        ) : !empresa.enderecos || empresa.enderecos.length === 0 ? (
                           <p className="empty-subsection">Nenhum endereço cadastrado</p>
                         ) : (
                           <table className="sub-table">
@@ -417,7 +557,7 @@ const GrupoEconomicoDetalhes = () => {
                                       </button>
                                       <button 
                                         className="btn-icon-small"
-                                        onClick={() => handleDeleteEndereco(endereco.id)}
+                                        onClick={() => handleDeleteEndereco(endereco.id, empresa.id)}
                                       >
                                         <Trash2 size={14} />
                                       </button>
