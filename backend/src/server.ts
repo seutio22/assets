@@ -57,10 +57,13 @@ app.set('trust proxy', 1); // Confiar no primeiro proxy (Railway)
 // Middlewares - CORS configurado para aceitar TUDO
 // Nota: No Vercel, o OPTIONS é tratado no handler api/index.ts antes de chegar aqui
 app.use(cors({
-  origin: true, // Aceitar qualquer origem
+  origin: function (origin, callback) {
+    // Aceitar qualquer origem
+    callback(null, true);
+  },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
-  credentials: false // Desabilitar credentials quando aceita qualquer origem
+  credentials: false
 }));
 
 // Middleware adicional para garantir CORS em todas as respostas
@@ -74,7 +77,7 @@ app.use((req, res, next) => {
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin');
   
-  // OPTIONS já tratado no handler Vercel, mas manter aqui como backup
+  // Responder imediatamente para requisições OPTIONS (preflight)
   if (req.method === 'OPTIONS') {
     return res.sendStatus(200);
   }
@@ -247,18 +250,6 @@ if (typeof module !== 'undefined' && module.exports) {
 // No Railway, sempre iniciar o servidor
 // No Vercel, não iniciar (usa serverless functions)
 if (!process.env.VERCEL) {
-  // Aplicar migration automaticamente ao iniciar (apenas em produção)
-  if (process.env.NODE_ENV === 'production' || process.env.AUTO_APPLY_MIGRATIONS === 'true') {
-    try {
-      const { applyMigration } = require('../apply-migration-auto');
-      applyMigration().catch(() => {
-        console.log('⚠️  Migration não aplicada, continuando...');
-      });
-    } catch (error) {
-      console.log('⚠️  Script de migration não encontrado, continuando...');
-    }
-  }
-
   app.listen(PORT, () => {
     console.log(`🚀 Server running on port ${PORT}`);
     console.log(`📝 Environment: ${process.env.NODE_ENV || 'development'}`);
