@@ -5,16 +5,15 @@ WORKDIR /app
 # Copiar arquivos de dependências do backend
 COPY package*.json ./
 
-# Instalar dependências
+# Copiar prisma schema ANTES de instalar (para o postinstall funcionar)
+COPY prisma ./prisma
+
+# Instalar dependências (postinstall vai executar prisma generate)
 RUN npm install
 
 # Copiar código fonte do backend
 COPY src ./src
-COPY prisma ./prisma
 COPY tsconfig.json ./
-
-# Gerar Prisma Client
-RUN npx prisma generate
 
 # Build da aplicação
 RUN npm run build
