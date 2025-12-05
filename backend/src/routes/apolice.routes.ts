@@ -31,19 +31,35 @@ router.get('/', async (req: AuthRequest, res) => {
 
     if (search && (search as string).trim() !== '') {
       const searchTerm = (search as string).trim();
-      // Buscar empresas que correspondem ao termo de busca
-      const empresasEncontradas = await prisma.empresa.findMany({
-        where: {
-          tenantId: req.tenantId,
-          OR: [
-            { razaoSocial: { contains: searchTerm } },
-            { cnpj: { contains: searchTerm } }
-          ]
-        },
-        select: { id: true }
-      });
+      // Busca otimizada: buscar empresas e fornecedores em paralelo
+      // No PostgreSQL, contains já é case-sensitive, mas podemos usar searchTerm em lowercase
+      const [empresasEncontradas, fornecedoresEncontrados] = await Promise.all([
+        prisma.empresa.findMany({
+          where: {
+            tenantId: req.tenantId,
+            OR: [
+              { razaoSocial: { contains: searchTerm } },
+              { cnpj: { contains: searchTerm } }
+            ]
+          },
+          select: { id: true },
+          take: 100 // Limitar resultados para evitar queries muito grandes
+        }),
+        prisma.fornecedor.findMany({
+          where: {
+            tenantId: req.tenantId,
+            OR: [
+              { razaoSocial: { contains: searchTerm } },
+              { cnpj: { contains: searchTerm } }
+            ]
+          },
+          select: { id: true },
+          take: 100
+        })
+      ]);
       
       const empresaIds = empresasEncontradas.map(e => e.id);
+      const fornecedorIds = fornecedoresEncontrados.map(f => f.id);
       
       where.OR = [
         { numero: { contains: searchTerm } },
@@ -53,6 +69,11 @@ router.get('/', async (req: AuthRequest, res) => {
       // Se encontrou empresas, adicionar ao filtro
       if (empresaIds.length > 0) {
         where.OR.push({ clienteId: { in: empresaIds } });
+      }
+      
+      // Se encontrou fornecedores, adicionar ao filtro
+      if (fornecedorIds.length > 0) {
+        where.OR.push({ fornecedorId: { in: fornecedorIds } });
       }
     }
 

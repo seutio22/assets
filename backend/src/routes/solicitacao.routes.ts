@@ -43,9 +43,25 @@ router.get('/', async (req: AuthRequest, res) => {
       where.solicitanteId = solicitanteId as string;
     }
 
+    // Otimizar: buscar dados básicos primeiro, depois relacionamentos apenas se necessário
     const solicitacoes = await prisma.solicitacao.findMany({
       where,
-      include: {
+      select: {
+        id: true,
+        numero: true,
+        tipo: true,
+        descricao: true,
+        nivelUrgencia: true,
+        status: true,
+        dataAbertura: true,
+        prazoDesejado: true,
+        observacoes: true,
+        solicitanteId: true,
+        apoliceId: true,
+        placementId: true,
+        implantacaoId: true,
+        createdAt: true,
+        updatedAt: true,
         solicitante: {
           select: {
             id: true,
@@ -54,8 +70,16 @@ router.get('/', async (req: AuthRequest, res) => {
           }
         },
         apolice: {
-          include: {
-            empresa: true
+          select: {
+            id: true,
+            numero: true,
+            empresa: {
+              select: {
+                id: true,
+                razaoSocial: true,
+                cnpj: true
+              }
+            }
           }
         },
         placement: {

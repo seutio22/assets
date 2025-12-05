@@ -116,6 +116,66 @@ router.get('/sub-estipulantes', async (req: any, res) => {
   }
 });
 
+// GET /portal/dashboard/stats - Estatísticas agregadas do portal (DEVE VIR ANTES DE /)
+router.get('/dashboard/stats', async (req: any, res) => {
+  try {
+    const usuario = await prisma.usuarioCliente.findUnique({
+      where: { id: req.userId },
+      select: {
+        id: true,
+        apolices: {
+          select: { apoliceId: true }
+        },
+        subEstipulantes: {
+          select: { subEstipulanteId: true }
+        }
+      }
+    });
+
+    if (!usuario) {
+      return res.status(404).json({ error: 'Usuário não encontrado' });
+    }
+
+    const apoliceIds = usuario.apolices.map(ua => ua.apoliceId);
+    const subEstipulanteIds = usuario.subEstipulantes.map(us => us.subEstipulanteId);
+
+    // Buscar todas as estatísticas em paralelo
+    const [totalApolices, totalSubEstipulantes, solicitacoes] = await Promise.all([
+      Promise.resolve(apoliceIds.length),
+      Promise.resolve(subEstipulanteIds.length),
+      prisma.solicitacaoAtendimento.findMany({
+        where: {
+          usuarioClienteId: req.userId,
+          tenantId: req.tenantId
+        },
+        select: {
+          status: true
+        }
+      })
+    ]);
+
+    const solicitacoesAbertas = solicitacoes.filter(s => s.status === 'ABERTA').length;
+    const solicitacoesResolvidas = solicitacoes.filter(s => s.status === 'RESOLVIDA' || s.status === 'FECHADA').length;
+    const solicitacoesEmAtendimento = solicitacoes.filter(s => s.status === 'EM_ATENDIMENTO').length;
+
+    res.json({
+      data: {
+        totalApolices,
+        totalSubEstipulantes,
+        solicitacoesAbertas,
+        solicitacoesResolvidas,
+        solicitacoesEmAtendimento
+      }
+    });
+  } catch (error: any) {
+    console.error('Erro ao buscar estatísticas do portal:', error);
+    res.status(500).json({ 
+      error: 'Erro ao buscar estatísticas',
+      details: error.message 
+    });
+  }
+});
+
 // GET /portal/atendimento - Listar solicitações do usuário
 router.get('/', async (req: any, res) => {
   try {

@@ -37,7 +37,7 @@ const Apolices = () => {
   const fetchApolices = async () => {
     try {
       setLoading(true)
-      const response = await api.get(`/apolices?search=${search}&limit=100`)
+      const response = await api.get(`/apolices?search=${search}&limit=50&page=1`)
       
       // Verificar se a resposta tem a estrutura esperada
       if (!response.data) {

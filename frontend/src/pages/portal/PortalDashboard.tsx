@@ -39,22 +39,33 @@ const PortalDashboard = () => {
     try {
       setLoading(true)
       
-      // Usar rotas específicas do portal
-      const [apolicesRes, subEstipulantesRes, solicitacoesRes] = await Promise.all([
-        portalApi.get('/portal/apolices'),
-        portalApi.get('/portal/sub-estipulantes'),
-        portalApi.get('/portal?limit=100')
-      ])
+      // Tentar usar endpoint agregado primeiro (muito mais rápido)
+      try {
+        const response = await portalApi.get('/portal/dashboard/stats')
+        setStats(response.data.data)
+      } catch (optimizedError: any) {
+        // Fallback: se o endpoint agregado não existir, usar rotas antigas
+        if (optimizedError.response?.status === 404) {
+          console.log('Rota otimizada não disponível, usando rotas antigas')
+          const [apolicesRes, subEstipulantesRes, solicitacoesRes] = await Promise.all([
+            portalApi.get('/portal/apolices'),
+            portalApi.get('/portal/sub-estipulantes'),
+            portalApi.get('/portal?limit=100')
+          ])
 
-      const solicitacoes = solicitacoesRes.data.data || []
+          const solicitacoes = solicitacoesRes.data.data || []
 
-      setStats({
-        totalApolices: apolicesRes.data.data?.length || 0,
-        totalSubEstipulantes: subEstipulantesRes.data.data?.length || 0,
-        solicitacoesAbertas: solicitacoes.filter((s: any) => s.status === 'ABERTA').length,
-        solicitacoesResolvidas: solicitacoes.filter((s: any) => s.status === 'RESOLVIDA' || s.status === 'FECHADA').length,
-        solicitacoesEmAtendimento: solicitacoes.filter((s: any) => s.status === 'EM_ATENDIMENTO').length
-      })
+          setStats({
+            totalApolices: apolicesRes.data.data?.length || 0,
+            totalSubEstipulantes: subEstipulantesRes.data.data?.length || 0,
+            solicitacoesAbertas: solicitacoes.filter((s: any) => s.status === 'ABERTA').length,
+            solicitacoesResolvidas: solicitacoes.filter((s: any) => s.status === 'RESOLVIDA' || s.status === 'FECHADA').length,
+            solicitacoesEmAtendimento: solicitacoes.filter((s: any) => s.status === 'EM_ATENDIMENTO').length
+          })
+        } else {
+          throw optimizedError
+        }
+      }
     } catch (error) {
       console.error('Erro ao carregar estatísticas:', error)
     } finally {

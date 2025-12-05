@@ -142,6 +142,8 @@ model Empresa {
   @@unique([tenantId, cnpj])
   @@index([tenantId])
   @@index([grupoEconomicoId])
+  @@index([razaoSocial]) // Índice para busca
+  @@index([cnpj]) // Índice para busca
   @@map("empresas")
 }
 
@@ -234,6 +236,8 @@ model Fornecedor {
   contatos  ContatoFornecedor[]
 
   @@index([tenantId])
+  @@index([razaoSocial]) // Índice para busca
+  @@index([cnpj]) // Índice para busca
   @@map("fornecedores")
 }
 
@@ -336,6 +340,8 @@ model Apolice {
   @@index([clienteId])
   @@index([fornecedorId])
   @@index([status])
+  @@index([numero]) // Índice para busca
+  @@index([produto]) // Índice para busca
   @@map("apolices")
 }
 
