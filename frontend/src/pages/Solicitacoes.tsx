@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useParams, useLocation } from 'react-router-dom'
 import { api } from '../services/api'
 import { useAuth } from '../contexts/AuthContext'
-import { Plus, Search, Eye, Edit, ArrowLeft } from 'lucide-react'
+import { Plus, Search, Eye, Edit, ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react'
 import SolicitacaoDetalhes from './SolicitacaoDetalhes'
+import { useDebounce } from '../hooks/useDebounce'
 import './Solicitacoes.css'
 
 interface Solicitacao {
@@ -54,6 +55,10 @@ const Solicitacoes = () => {
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('')
   const [tipoFilter, setTipoFilter] = useState<string>('')
+  const [page, setPage] = useState(1)
+  const [limit] = useState(25) // Reduzido de 100 para 25
+  const [total, setTotal] = useState(0)
+  const [totalPages, setTotalPages] = useState(0)
 
   // Verificar qual submódulo está ativo
   const isDetailView = id && location.pathname.includes(`/solicitacoes/${id}`) && !location.pathname.includes('/editar')
@@ -65,13 +70,20 @@ const Solicitacoes = () => {
   const isTodas = location.pathname === '/solicitacoes' || (!isMinhasSolicitacoes && !isPlacement && !isImplantacao && !isDetailView && !isNewSolicitacao && !isEditSolicitacao)
   const showList = !isDetailView && !isNewSolicitacao && !isEditSolicitacao
 
+  // Debounce da busca para evitar múltiplas requisições
+  const debouncedSearch = useDebounce(search, 500)
+
+  useEffect(() => {
+    setPage(1) // Resetar para primeira página quando busca ou filtros mudarem
+  }, [debouncedSearch, statusFilter, tipoFilter])
+
   useEffect(() => {
     if (showList) {
       fetchSolicitacoes()
     } else {
       setLoading(false)
     }
-  }, [statusFilter, tipoFilter, showList, isMinhasSolicitacoes, isPlacement, isImplantacao])
+  }, [debouncedSearch, statusFilter, tipoFilter, page, showList, isMinhasSolicitacoes, isPlacement, isImplantacao])
 
   const fetchSolicitacoes = async () => {
     try {
@@ -89,25 +101,23 @@ const Solicitacoes = () => {
       
       if (statusFilter) params.append('status', statusFilter)
       if (tipoFilter && !isPlacement && !isImplantacao) params.append('tipo', tipoFilter)
-      params.append('limit', '100')
+      if (debouncedSearch.trim()) params.append('search', debouncedSearch.trim())
+      params.append('page', page.toString())
+      params.append('limit', limit.toString())
       
       const response = await api.get(`/solicitacoes?${params.toString()}`)
       const solicitacoesData = response.data.data || []
+      const pagination = response.data.pagination || {}
       
-      // Filtrar por busca local se necessário
-      let filtered = solicitacoesData
-      if (search.trim()) {
-        filtered = solicitacoesData.filter((s: Solicitacao) => 
-          s.numero.toLowerCase().includes(search.toLowerCase()) ||
-          s.descricao.toLowerCase().includes(search.toLowerCase()) ||
-          s.apolice?.numero.toLowerCase().includes(search.toLowerCase())
-        )
-      }
-      
-      setSolicitacoes(filtered)
+      setSolicitacoes(solicitacoesData)
+      setTotal(pagination.total || 0)
+      setTotalPages(pagination.totalPages || 0)
     } catch (error: any) {
       console.error('Erro ao carregar solicitações:', error)
       alert(`Erro ao carregar solicitações: ${error.response?.data?.error || error.message}`)
+      setSolicitacoes([])
+      setTotal(0)
+      setTotalPages(0)
     } finally {
       setLoading(false)
     }
@@ -193,14 +203,9 @@ const Solicitacoes = () => {
           <Search size={20} />
           <input
             type="text"
-            placeholder="Buscar por número, descrição ou apólice..."
+            placeholder="Buscar por número, descrição, apólice ou razão social..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            onKeyPress={(e) => {
-              if (e.key === 'Enter') {
-                fetchSolicitacoes()
-              }
-            }}
           />
         </div>
 
@@ -230,6 +235,20 @@ const Solicitacoes = () => {
           )}
         </div>
       </div>
+
+      {!loading && total > 0 && (
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center', 
+          marginBottom: '16px',
+          padding: '0 8px'
+        }}>
+          <span style={{ color: '#666', fontSize: '14px' }}>
+            Mostrando {solicitacoes.length} de {total} solicitações
+          </span>
+        </div>
+      )}
 
       {loading ? (
         <div className="loading">Carregando...</div>
@@ -305,6 +324,51 @@ const Solicitacoes = () => {
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {!loading && totalPages > 1 && (
+        <div style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          gap: '8px',
+          marginTop: '24px',
+          padding: '16px'
+        }}>
+          <button
+            className="btn"
+            onClick={() => setPage(prev => Math.max(1, prev - 1))}
+            disabled={page === 1}
+            style={{
+              opacity: page === 1 ? 0.5 : 1,
+              cursor: page === 1 ? 'not-allowed' : 'pointer'
+            }}
+          >
+            <ChevronLeft size={18} />
+            Anterior
+          </button>
+          
+          <span style={{ 
+            padding: '8px 16px',
+            fontSize: '14px',
+            color: '#333'
+          }}>
+            Página {page} de {totalPages}
+          </span>
+          
+          <button
+            className="btn"
+            onClick={() => setPage(prev => Math.min(totalPages, prev + 1))}
+            disabled={page === totalPages}
+            style={{
+              opacity: page === totalPages ? 0.5 : 1,
+              cursor: page === totalPages ? 'not-allowed' : 'pointer'
+            }}
+          >
+            Próxima
+            <ChevronRight size={18} />
+          </button>
         </div>
       )}
     </div>

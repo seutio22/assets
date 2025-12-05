@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { api } from '../services/api'
-import { Plus, Search, Edit, Trash2, Eye } from 'lucide-react'
+import { Plus, Search, Edit, Trash2, Eye, ChevronLeft, ChevronRight } from 'lucide-react'
 import Modal from '../components/Modal'
 import ApoliceFormWizard from '../components/ApoliceFormWizard'
 import SubEstipulanteForm from '../components/SubEstipulanteForm'
+import { useDebounce } from '../hooks/useDebounce'
 import './Apolices.css'
 
 interface Apolice {
@@ -27,26 +28,47 @@ const Apolices = () => {
   const [apolices, setApolices] = useState<Apolice[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
+  const [page, setPage] = useState(1)
+  const [limit] = useState(25) // Reduzido de 50 para 25
+  const [total, setTotal] = useState(0)
+  const [totalPages, setTotalPages] = useState(0)
   const [showModal, setShowModal] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
+  
+  // Debounce da busca para evitar múltiplas requisições
+  const debouncedSearch = useDebounce(search, 500)
+
+  useEffect(() => {
+    setPage(1) // Resetar para primeira página quando busca mudar
+  }, [debouncedSearch])
 
   useEffect(() => {
     fetchApolices()
-  }, [search])
+  }, [debouncedSearch, page])
 
   const fetchApolices = async () => {
     try {
       setLoading(true)
-      const response = await api.get(`/apolices?search=${search}&limit=50&page=1`)
+      const params = new URLSearchParams()
+      if (debouncedSearch.trim()) {
+        params.append('search', debouncedSearch.trim())
+      }
+      params.append('limit', limit.toString())
+      params.append('page', page.toString())
+      
+      const response = await api.get(`/apolices?${params.toString()}`)
       
       // Verificar se a resposta tem a estrutura esperada
       if (!response.data) {
         console.error('Resposta da API inválida:', response)
         setApolices([])
+        setTotal(0)
+        setTotalPages(0)
         return
       }
       
       const apolicesData = response.data.data || []
+      const pagination = response.data.pagination || {}
       
       // Validar e limpar dados
       const apolicesValidas = apolicesData.map((apolice: any) => ({
@@ -56,16 +78,18 @@ const Apolices = () => {
       }))
       
       setApolices(apolicesValidas)
+      setTotal(pagination.total || 0)
+      setTotalPages(pagination.totalPages || 0)
     } catch (error: any) {
       console.error('Erro ao carregar apólices:', error)
-      console.error('Detalhes do erro:', error.response?.data)
-      console.error('Status do erro:', error.response?.status)
       
       // Não mostrar alerta se for erro 401 (será redirecionado automaticamente)
       if (error.response?.status !== 401) {
         alert(`Erro ao carregar apólices: ${error.response?.data?.error || error.message}`)
       }
       setApolices([])
+      setTotal(0)
+      setTotalPages(0)
     } finally {
       setLoading(false)
     }
@@ -129,11 +153,25 @@ const Apolices = () => {
         <input
           type="text"
           className="input"
-          placeholder="Buscar apólices..."
+          placeholder="Buscar apólices por número, CNPJ, razão social ou produto..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
       </div>
+
+      {!loading && total > 0 && (
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center', 
+          marginBottom: '16px',
+          padding: '0 8px'
+        }}>
+          <span style={{ color: '#666', fontSize: '14px' }}>
+            Mostrando {apolices.length} de {total} apólices
+          </span>
+        </div>
+      )}
 
       <div className="table-container">
         <table className="data-table">
@@ -216,6 +254,51 @@ const Apolices = () => {
           </tbody>
         </table>
       </div>
+
+      {!loading && totalPages > 1 && (
+        <div style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          gap: '8px',
+          marginTop: '24px',
+          padding: '16px'
+        }}>
+          <button
+            className="btn"
+            onClick={() => setPage(prev => Math.max(1, prev - 1))}
+            disabled={page === 1}
+            style={{
+              opacity: page === 1 ? 0.5 : 1,
+              cursor: page === 1 ? 'not-allowed' : 'pointer'
+            }}
+          >
+            <ChevronLeft size={18} />
+            Anterior
+          </button>
+          
+          <span style={{ 
+            padding: '8px 16px',
+            fontSize: '14px',
+            color: '#333'
+          }}>
+            Página {page} de {totalPages}
+          </span>
+          
+          <button
+            className="btn"
+            onClick={() => setPage(prev => Math.min(totalPages, prev + 1))}
+            disabled={page === totalPages}
+            style={{
+              opacity: page === totalPages ? 0.5 : 1,
+              cursor: page === totalPages ? 'not-allowed' : 'pointer'
+            }}
+          >
+            Próxima
+            <ChevronRight size={18} />
+          </button>
+        </div>
+      )}
 
           <Modal
             isOpen={showModal}

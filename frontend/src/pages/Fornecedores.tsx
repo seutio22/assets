@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { api } from '../services/api'
-import { Plus, Search, Edit, Trash2, Eye } from 'lucide-react'
+import { Plus, Search, Edit, Trash2, Eye, ChevronLeft, ChevronRight } from 'lucide-react'
 import Modal from '../components/Modal'
 import FornecedorForm from '../components/FornecedorForm'
+import { useDebounce } from '../hooks/useDebounce'
 import './Fornecedores.css'
 
 interface Fornecedor {
@@ -23,21 +24,49 @@ const Fornecedores = () => {
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [tipoFiltro, setTipoFiltro] = useState<'TODOS' | 'FORNECEDOR' | 'CORRETOR_PARCEIRO'>('TODOS')
+  const [page, setPage] = useState(1)
+  const [limit] = useState(25) // Reduzido de 100 para 25
+  const [total, setTotal] = useState(0)
+  const [totalPages, setTotalPages] = useState(0)
   const [showModal, setShowModal] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
 
+  // Debounce da busca
+  const debouncedSearch = useDebounce(search, 500)
+
+  useEffect(() => {
+    setPage(1) // Resetar página quando busca ou filtro mudar
+  }, [debouncedSearch, tipoFiltro])
+
   useEffect(() => {
     fetchFornecedores()
-  }, [search, tipoFiltro])
+  }, [debouncedSearch, tipoFiltro, page])
 
   const fetchFornecedores = async () => {
     try {
       setLoading(true)
-      const tipoParam = tipoFiltro !== 'TODOS' ? `&tipo=${tipoFiltro}` : ''
-      const response = await api.get(`/fornecedores?search=${search}${tipoParam}&limit=100`)
-      setFornecedores(response.data.data || [])
+      const params = new URLSearchParams()
+      if (debouncedSearch.trim()) {
+        params.append('search', debouncedSearch.trim())
+      }
+      if (tipoFiltro !== 'TODOS') {
+        params.append('tipo', tipoFiltro)
+      }
+      params.append('page', page.toString())
+      params.append('limit', limit.toString())
+      
+      const response = await api.get(`/fornecedores?${params.toString()}`)
+      const fornecedoresData = response.data.data || []
+      const pagination = response.data.pagination || {}
+      
+      setFornecedores(fornecedoresData)
+      setTotal(pagination.total || 0)
+      setTotalPages(pagination.totalPages || 0)
     } catch (error) {
       console.error('Erro ao carregar parceiros:', error)
+      setFornecedores([])
+      setTotal(0)
+      setTotalPages(0)
     } finally {
       setLoading(false)
     }
@@ -128,6 +157,20 @@ const Fornecedores = () => {
         </div>
       </div>
 
+      {!loading && total > 0 && (
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center', 
+          marginBottom: '16px',
+          padding: '0 8px'
+        }}>
+          <span style={{ color: '#666', fontSize: '14px' }}>
+            Mostrando {fornecedores.length} de {total} parceiros
+          </span>
+        </div>
+      )}
+
       <div className="table-container">
         <table className="data-table">
           <thead>
@@ -202,6 +245,51 @@ const Fornecedores = () => {
           </tbody>
         </table>
       </div>
+
+      {!loading && totalPages > 1 && (
+        <div style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          gap: '8px',
+          marginTop: '24px',
+          padding: '16px'
+        }}>
+          <button
+            className="btn"
+            onClick={() => setPage(prev => Math.max(1, prev - 1))}
+            disabled={page === 1}
+            style={{
+              opacity: page === 1 ? 0.5 : 1,
+              cursor: page === 1 ? 'not-allowed' : 'pointer'
+            }}
+          >
+            <ChevronLeft size={18} />
+            Anterior
+          </button>
+          
+          <span style={{ 
+            padding: '8px 16px',
+            fontSize: '14px',
+            color: '#333'
+          }}>
+            Página {page} de {totalPages}
+          </span>
+          
+          <button
+            className="btn"
+            onClick={() => setPage(prev => Math.min(totalPages, prev + 1))}
+            disabled={page === totalPages}
+            style={{
+              opacity: page === totalPages ? 0.5 : 1,
+              cursor: page === totalPages ? 'not-allowed' : 'pointer'
+            }}
+          >
+            Próxima
+            <ChevronRight size={18} />
+          </button>
+        </div>
+      )}
 
       <Modal
         isOpen={showModal}

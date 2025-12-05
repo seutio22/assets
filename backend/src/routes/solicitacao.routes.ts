@@ -21,7 +21,10 @@ const upload = multer({
 // GET /solicitacoes
 router.get('/', async (req: AuthRequest, res) => {
   try {
-    const { tipo, status, solicitanteId, limit = '100' } = req.query;
+    const { tipo, status, solicitanteId, search, page = '1', limit = '25' } = req.query;
+    const pageNum = parseInt(page as string);
+    const limitNum = parseInt(limit as string);
+    const skip = (pageNum - 1) * limitNum;
 
     if (!req.tenantId) {
       return res.status(401).json({ error: 'Tenant ID não encontrado' });
@@ -43,9 +46,47 @@ router.get('/', async (req: AuthRequest, res) => {
       where.solicitanteId = solicitanteId as string;
     }
 
+    // Busca por texto - busca em múltiplos campos
+    if (search && (search as string).trim() !== '') {
+      const searchTerm = (search as string).trim();
+      
+      // Buscar apólices relacionadas que correspondem à busca
+      const apolicesEncontradas = await prisma.apolice.findMany({
+        where: {
+          tenantId: req.tenantId,
+          OR: [
+            { numero: { contains: searchTerm } },
+            { empresa: { 
+              razaoSocial: { contains: searchTerm } 
+            } }
+          ]
+        },
+        select: { id: true },
+        take: 100
+      });
+
+      const apoliceIds = apolicesEncontradas.map(a => a.id);
+
+      // Adicionar condições de busca
+      where.OR = [
+        { numero: { contains: searchTerm } },
+        { descricao: { contains: searchTerm } }
+      ];
+
+      // Se encontrou apólices, adicionar ao filtro
+      if (apoliceIds.length > 0) {
+        where.OR.push({ apoliceId: { in: apoliceIds } });
+      }
+    }
+
+    // Buscar total para paginação
+    const total = await prisma.solicitacao.count({ where });
+
     // Otimizar: buscar dados básicos primeiro, depois relacionamentos apenas se necessário
     const solicitacoes = await prisma.solicitacao.findMany({
       where,
+      skip,
+      take: limitNum,
       select: {
         id: true,
         numero: true,
@@ -105,13 +146,17 @@ router.get('/', async (req: AuthRequest, res) => {
       },
       orderBy: {
         createdAt: 'desc'
-      },
-      take: parseInt(limit as string)
+      }
     });
 
     res.json({
       data: solicitacoes,
-      total: solicitacoes.length
+      pagination: {
+        page: pageNum,
+        limit: limitNum,
+        total,
+        totalPages: Math.ceil(total / limitNum)
+      }
     });
   } catch (error) {
     console.error('Erro ao listar solicitações:', error);
