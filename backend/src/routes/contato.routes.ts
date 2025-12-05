@@ -54,10 +54,23 @@ router.get('/', async (req: AuthRequest, res) => {
       return res.status(400).json({ error: 'empresaId é obrigatório' });
     }
 
+    // Usar select para buscar apenas campos que existem
     const contatos = await prisma.contato.findMany({
       where: {
         empresaId: empresaId as string,
         tenantId: req.tenantId
+      },
+      select: {
+        id: true,
+        nome: true,
+        email: true,
+        telefone: true,
+        cargo: true,
+        observacoes: true,
+        createdAt: true,
+        updatedAt: true,
+        empresaId: true,
+        tenantId: true
       },
       orderBy: { createdAt: 'desc' }
     });
