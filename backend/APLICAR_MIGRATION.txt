@@ -1,0 +1,37 @@
+==========================================
+INSTRUÇÕES PARA APLICAR MIGRATION
+==========================================
+
+O erro 500 está acontecendo porque os novos campos (dataNascimento e ativo) 
+ainda não existem no banco de dados de produção.
+
+SOLUÇÃO RÁPIDA - Aplicar via Railway CLI:
+
+1. Instalar Railway CLI:
+   npm install -g @railway/cli
+
+2. Login no Railway:
+   railway login
+
+3. Conectar ao projeto:
+   railway link
+
+4. Aplicar a migration SQL:
+   railway run npx prisma db push --skip-generate
+
+OU aplicar o SQL diretamente no banco:
+
+Execute este SQL no PostgreSQL do Railway:
+
+ALTER TABLE "contatos" 
+ADD COLUMN IF NOT EXISTS "dataNascimento" TIMESTAMP;
+
+ALTER TABLE "contatos" 
+ADD COLUMN IF NOT EXISTS "ativo" BOOLEAN DEFAULT true;
+
+UPDATE "contatos" 
+SET "ativo" = true 
+WHERE "ativo" IS NULL;
+
+==========================================
+

@@ -243,6 +243,18 @@ if (typeof module !== 'undefined' && module.exports) {
 // No Railway, sempre iniciar o servidor
 // No Vercel, não iniciar (usa serverless functions)
 if (!process.env.VERCEL) {
+  // Aplicar migration automaticamente ao iniciar (apenas em produção)
+  if (process.env.NODE_ENV === 'production' || process.env.AUTO_APPLY_MIGRATIONS === 'true') {
+    try {
+      const { applyMigration } = require('../apply-migration-auto');
+      applyMigration().catch(() => {
+        console.log('⚠️  Migration não aplicada, continuando...');
+      });
+    } catch (error) {
+      console.log('⚠️  Script de migration não encontrado, continuando...');
+    }
+  }
+
   app.listen(PORT, () => {
     console.log(`🚀 Server running on port ${PORT}`);
     console.log(`📝 Environment: ${process.env.NODE_ENV || 'development'}`);
