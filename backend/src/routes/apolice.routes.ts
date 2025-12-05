@@ -151,6 +151,91 @@ router.get('/', async (req: AuthRequest, res) => {
   }
 });
 
+// GET /apolices/:id/detalhes - Retorna todos os dados relacionados em uma única requisição
+router.get('/:id/detalhes', async (req: AuthRequest, res) => {
+  try {
+    const { id } = req.params;
+    if (!req.tenantId) {
+      return res.status(401).json({ error: 'Tenant ID não encontrado' });
+    }
+
+    const tenantId = req.tenantId;
+
+    // Buscar apólice com relacionamentos básicos
+    const apolice = await prisma.apolice.findFirst({
+      where: { id, tenantId },
+      include: {
+        empresa: {
+          include: {
+            grupoEconomico: {
+              select: { id: true, name: true }
+            }
+          }
+        },
+        fornecedor: {
+          select: { id: true, razaoSocial: true, cnpj: true }
+        }
+      }
+    });
+
+    if (!apolice) {
+      return res.status(404).json({ error: 'Apólice não encontrada' });
+    }
+
+    // Buscar todos os dados relacionados em paralelo
+    const [
+      subEstipulantes,
+      agrupamentosFaturamento,
+      planos,
+      cobertura,
+      reajustes,
+      relacionamento,
+      elegibilidades,
+      enderecosApolice,
+      contatosApolice,
+      comissionamento,
+      fee
+    ] = await Promise.all([
+      prisma.subEstipulante.findMany({ where: { apoliceId: id, tenantId } }),
+      prisma.agrupamentoFaturamento.findMany({ where: { apoliceId: id, tenantId } }),
+      prisma.plano.findMany({ where: { apoliceId: id, tenantId } }),
+      prisma.cobertura.findFirst({ where: { apoliceId: id, tenantId } }),
+      prisma.reajuste.findMany({ where: { apoliceId: id, tenantId }, orderBy: { createdAt: 'desc' } }),
+      prisma.relacionamento.findFirst({ where: { apoliceId: id, tenantId } }),
+      prisma.elegibilidade.findMany({ where: { apoliceId: id, tenantId } }),
+      prisma.enderecoApolice.findMany({ where: { apoliceId: id, tenantId } }),
+      prisma.contatoApolice.findMany({ where: { apoliceId: id, tenantId } }),
+      prisma.comissionamentoApolice.findFirst({ where: { apoliceId: id, tenantId } }),
+      prisma.feeApolice.findFirst({ where: { apoliceId: id, tenantId } })
+    ]);
+
+    res.json({
+      apolice: {
+        ...apolice,
+        fornecedor: apolice.fornecedor ? {
+          id: apolice.fornecedor.id,
+          razaoSocial: apolice.fornecedor.razaoSocial,
+          cnpj: apolice.fornecedor.cnpj || undefined
+        } : null
+      },
+      subEstipulantes,
+      agrupamentosFaturamento,
+      planos,
+      cobertura,
+      reajustes,
+      relacionamento,
+      elegibilidades,
+      enderecosApolice,
+      contatosApolice,
+      comissionamento,
+      fee
+    });
+  } catch (error: any) {
+    console.error('Erro ao buscar detalhes da apólice:', error);
+    res.status(500).json({ error: 'Erro ao buscar detalhes da apólice', details: error.message });
+  }
+});
+
 // GET /apolices/:id
 router.get('/:id', async (req: AuthRequest, res) => {
   try {

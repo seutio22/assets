@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { api } from '../services/api'
+import { fetchProdutos, fetchPortes } from '../services/structuralData'
 import { ChevronLeft, ChevronRight, Check } from 'lucide-react'
 import './ApoliceFormWizard.css'
 
@@ -129,52 +130,11 @@ const ApoliceFormWizard = ({ apoliceId, onSuccess, onCancel }: ApoliceFormWizard
   const fetchProdutos = async () => {
     try {
       console.log('Carregando produtos do módulo Dados...')
+      const produtosData = await fetchProdutos()
+      console.log(`${produtosData.length} produtos carregados:`, produtosData.map(p => p.valor))
+      setProdutos(produtosData)
       
-      // Buscar módulo "Apolice" ou "Apólice"
-      const modulosResponse = await api.get('/modulos')
-      const modulos = modulosResponse.data.data || []
-      const moduloApolice = modulos.find((m: { nome: string }) => 
-        m.nome.toLowerCase() === 'apolice' || m.nome.toLowerCase() === 'apólice'
-      )
-
-      if (!moduloApolice) {
-        console.warn('Módulo Apolice não encontrado. Verifique se o módulo foi criado na página Dados.')
-        setProdutos([])
-        return
-      }
-
-      console.log('Módulo encontrado:', moduloApolice.nome)
-
-      // Buscar configuração de campo "produto" no módulo Apolice
-      const configsResponse = await api.get(`/configuracoes-campos?moduloId=${moduloApolice.id}`)
-      const configs = configsResponse.data.data || []
-      const configProduto = configs.find((c: { nome: string }) => 
-        c.nome.toLowerCase() === 'produto'
-      )
-
-      if (!configProduto) {
-        console.warn('Configuração de campo "produto" não encontrada. Verifique se o campo foi criado no módulo Apolice.')
-        setProdutos([])
-        return
-      }
-
-      console.log('Configuração de campo encontrada:', configProduto.nome)
-
-      // Buscar dados dinâmicos do campo produto (apenas ativos)
-      console.log('Buscando dados dinâmicos para configuracaoCampoId:', configProduto.id)
-      const dadosResponse = await api.get(`/dados-dinamicos?configuracaoCampoId=${configProduto.id}`)
-      console.log('Resposta da API de dados dinâmicos:', dadosResponse.data)
-      const dados = dadosResponse.data.data || []
-      console.log('Dados recebidos:', dados)
-      
-      const produtosFormatados = dados
-        .filter((d: { ativo: boolean }) => d.ativo !== false) // Filtrar apenas ativos
-        .map((d: { id: string; valor: string }) => ({ id: d.id, valor: d.valor }))
-      
-      console.log(`${produtosFormatados.length} produtos carregados:`, produtosFormatados.map(p => p.valor))
-      setProdutos(produtosFormatados)
-      
-      if (produtosFormatados.length === 0) {
+      if (produtosData.length === 0) {
         console.warn('Nenhum produto ativo encontrado. Verifique se há dados cadastrados no módulo Dados.')
       }
     } catch (err) {
@@ -186,52 +146,11 @@ const ApoliceFormWizard = ({ apoliceId, onSuccess, onCancel }: ApoliceFormWizard
   const fetchPortes = async () => {
     try {
       console.log('Carregando portes do módulo Dados...')
+      const portesData = await fetchPortes()
+      console.log(`${portesData.length} portes carregados:`, portesData.map(p => p.valor))
+      setPortes(portesData)
       
-      // Buscar módulo "Apolice" ou "Apólice"
-      const modulosResponse = await api.get('/modulos')
-      const modulos = modulosResponse.data.data || []
-      const moduloApolice = modulos.find((m: { nome: string }) => 
-        m.nome.toLowerCase() === 'apolice' || m.nome.toLowerCase() === 'apólice'
-      )
-
-      if (!moduloApolice) {
-        console.warn('Módulo Apolice não encontrado. Verifique se o módulo foi criado na página Dados.')
-        setPortes([])
-        return
-      }
-
-      console.log('Módulo encontrado para portes:', moduloApolice.nome)
-
-      // Buscar configuração de campo "porte" no módulo Apolice
-      const configsResponse = await api.get(`/configuracoes-campos?moduloId=${moduloApolice.id}`)
-      const configs = configsResponse.data.data || []
-      const configPorte = configs.find((c: { nome: string }) => 
-        c.nome.toLowerCase() === 'porte'
-      )
-
-      if (!configPorte) {
-        console.warn('Configuração de campo "porte" não encontrada. Verifique se o campo foi criado no módulo Apolice.')
-        setPortes([])
-        return
-      }
-
-      console.log('Configuração de campo porte encontrada:', configPorte.nome)
-
-      // Buscar dados dinâmicos do campo porte (apenas ativos)
-      console.log('Buscando dados dinâmicos para configuracaoCampoId (porte):', configPorte.id)
-      const dadosResponse = await api.get(`/dados-dinamicos?configuracaoCampoId=${configPorte.id}`)
-      console.log('Resposta da API de dados dinâmicos (porte):', dadosResponse.data)
-      const dados = dadosResponse.data.data || []
-      console.log('Dados de porte recebidos:', dados)
-      
-      const portesFormatados = dados
-        .filter((d: { ativo: boolean }) => d.ativo !== false) // Filtrar apenas ativos
-        .map((d: { id: string; valor: string }) => ({ id: d.id, valor: d.valor }))
-      
-      console.log(`${portesFormatados.length} portes carregados:`, portesFormatados.map(p => p.valor))
-      setPortes(portesFormatados)
-      
-      if (portesFormatados.length === 0) {
+      if (portesData.length === 0) {
         console.warn('Nenhum porte ativo encontrado. Verifique se há dados cadastrados no módulo Dados.')
       }
     } catch (err) {

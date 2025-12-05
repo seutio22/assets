@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { api } from '../services/api'
+import { fetchProdutos, fetchPortes } from '../services/structuralData'
 import { ArrowLeft, Edit, Save, FileText, Plus, Trash2, ChevronDown, ChevronUp, Eye, X } from 'lucide-react'
 import Modal from '../components/Modal'
 import SubEstipulanteForm from '../components/SubEstipulanteForm'
@@ -146,29 +147,62 @@ const ApoliceDetalhes = () => {
     if (id) {
       const loadData = async () => {
         try {
-          // Carregar dados críticos primeiro (apólice, produtos e portes em paralelo)
-          await Promise.all([
-            fetchApolice(),
-            fetchProdutos(),
-            fetchPortes()
-          ])
+          setLoading(true)
           
-          // Após a apólice estar carregada, carregar todos os outros dados em paralelo
-          await Promise.all([
-            fetchSubEstipulantes(),
-            fetchAgrupamentosFaturamento(),
-            fetchPlanos(),
-            fetchCobertura(),
-            fetchReajustes(),
-            fetchRelacionamento(),
-            fetchElegibilidades(),
-            fetchEnderecosApolice(),
-            fetchContatosApolice(),
-            fetchComissionamento(),
-            fetchFee()
-          ])
+          // Tentar usar endpoint agregado primeiro (muito mais rápido)
+          try {
+            const detalhesResponse = await api.get(`/apolices/${id}/detalhes`)
+            const detalhes = detalhesResponse.data
+            
+            // Preencher todos os estados de uma vez
+            setApolice(detalhes.apolice)
+            setFormData(detalhes.apolice)
+            setSubEstipulantes(detalhes.subEstipulantes || [])
+            setAgrupamentosFaturamento(detalhes.agrupamentosFaturamento || [])
+            setPlanos(detalhes.planos || [])
+            setCobertura(detalhes.cobertura)
+            setReajustes(detalhes.reajustes || [])
+            setRelacionamento(detalhes.relacionamento)
+            setElegibilidades(detalhes.elegibilidades || [])
+            setEnderecosApolice(detalhes.enderecosApolice || [])
+            setContatosApolice(detalhes.contatosApolice || [])
+            setComissionamento(detalhes.comissionamento)
+            setFee(detalhes.fee)
+            
+            setLoading(false)
+            
+            // Carregar produtos e portes do cache (dados estruturais)
+            await Promise.all([
+              loadProdutos(),
+              loadPortes()
+            ])
+          } catch (aggregatedError: any) {
+            // Fallback: se o endpoint agregado não existir, usar método antigo
+            console.warn('Endpoint agregado não disponível, usando método antigo', aggregatedError)
+            
+            await Promise.all([
+              fetchApolice(),
+              loadProdutos(),
+              loadPortes()
+            ])
+            
+            await Promise.all([
+              fetchSubEstipulantes(),
+              fetchAgrupamentosFaturamento(),
+              fetchPlanos(),
+              fetchCobertura(),
+              fetchReajustes(),
+              fetchRelacionamento(),
+              fetchElegibilidades(),
+              fetchEnderecosApolice(),
+              fetchContatosApolice(),
+              fetchComissionamento(),
+              fetchFee()
+            ])
+          }
         } catch (error) {
           console.error('Erro ao carregar dados:', error)
+          setLoading(false)
         }
       }
       loadData()
@@ -255,86 +289,14 @@ const ApoliceDetalhes = () => {
     }
   }
 
-  const fetchProdutos = async () => {
-    try {
-      // Buscar módulo "Apolice" ou "Apólice"
-      const modulosResponse = await api.get('/modulos')
-      const modulos = modulosResponse.data.data || []
-      const moduloApolice = modulos.find((m: { nome: string }) => 
-        m.nome.toLowerCase() === 'apolice' || m.nome.toLowerCase() === 'apólice'
-      )
-
-      if (!moduloApolice) {
-        setProdutos([])
-        return
-      }
-
-      // Buscar configuração de campo "produto" no módulo Apolice
-      const configsResponse = await api.get(`/configuracoes-campos?moduloId=${moduloApolice.id}`)
-      const configs = configsResponse.data.data || []
-      const configProduto = configs.find((c: { nome: string }) => 
-        c.nome.toLowerCase() === 'produto'
-      )
-
-      if (!configProduto) {
-        setProdutos([])
-        return
-      }
-
-      // Buscar dados dinâmicos do campo produto (apenas ativos)
-      const dadosResponse = await api.get(`/dados-dinamicos?configuracaoCampoId=${configProduto.id}`)
-      const dados = dadosResponse.data.data || []
-      
-      const produtosFormatados = dados
-        .filter((d: { ativo: boolean }) => d.ativo !== false) // Filtrar apenas ativos
-        .map((d: { id: string; valor: string }) => ({ id: d.id, valor: d.valor }))
-      
-      setProdutos(produtosFormatados)
-    } catch (err) {
-      console.error('Erro ao carregar produtos:', err)
-      setProdutos([])
-    }
+  const loadProdutos = async () => {
+    const produtosData = await fetchProdutos()
+    setProdutos(produtosData)
   }
 
-  const fetchPortes = async () => {
-    try {
-      // Buscar módulo "Apolice" ou "Apólice"
-      const modulosResponse = await api.get('/modulos')
-      const modulos = modulosResponse.data.data || []
-      const moduloApolice = modulos.find((m: { nome: string }) => 
-        m.nome.toLowerCase() === 'apolice' || m.nome.toLowerCase() === 'apólice'
-      )
-
-      if (!moduloApolice) {
-        setPortes([])
-        return
-      }
-
-      // Buscar configuração de campo "porte" no módulo Apolice
-      const configsResponse = await api.get(`/configuracoes-campos?moduloId=${moduloApolice.id}`)
-      const configs = configsResponse.data.data || []
-      const configPorte = configs.find((c: { nome: string }) => 
-        c.nome.toLowerCase() === 'porte'
-      )
-
-      if (!configPorte) {
-        setPortes([])
-        return
-      }
-
-      // Buscar dados dinâmicos do campo porte (apenas ativos)
-      const dadosResponse = await api.get(`/dados-dinamicos?configuracaoCampoId=${configPorte.id}`)
-      const dados = dadosResponse.data.data || []
-      
-      const portesFormatados = dados
-        .filter((d: { ativo: boolean }) => d.ativo !== false)
-        .map((d: { id: string; valor: string }) => ({ id: d.id, valor: d.valor }))
-      
-      setPortes(portesFormatados)
-    } catch (err) {
-      console.error('Erro ao carregar portes:', err)
-      setPortes([])
-    }
+  const loadPortes = async () => {
+    const portesData = await fetchPortes()
+    setPortes(portesData)
   }
 
   const fetchSubEstipulantes = async () => {
