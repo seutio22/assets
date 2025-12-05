@@ -46,93 +46,115 @@
   color: var(--color-text);
 }
 
-.empresas-list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-lg);
-}
-
-.empresa-card {
+/* Tabela de empresas */
+.empresas-table-container {
   background: var(--color-white);
   border-radius: 12px;
-  padding: var(--spacing-lg);
+  overflow: hidden;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.empresa-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: var(--spacing-lg);
-  padding-bottom: var(--spacing-md);
-  border-bottom: 2px solid var(--color-gray-light);
+.empresas-table {
+  width: 100%;
+  border-collapse: collapse;
 }
 
-.empresa-info {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--spacing-md);
-  flex: 1;
+.empresas-table thead {
+  background-color: var(--color-dark);
+  color: var(--color-white);
 }
 
-.empresa-info h3 {
-  margin: 0 0 4px 0;
-  color: var(--color-text);
-  font-size: 1.25rem;
-}
-
-.empresa-cnpj {
-  margin: 0;
-  color: var(--color-gray-dark);
-  font-size: 0.9rem;
-  font-weight: 500;
-}
-
-.empresa-data {
-  margin: 4px 0 0 0;
-  color: var(--color-gray-dark);
+.empresas-table th {
+  padding: var(--spacing-md);
+  text-align: left;
+  font-weight: 600;
   font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-.empresa-actions {
-  display: flex;
-  gap: var(--spacing-xs);
+.empresas-table tbody tr {
+  border-bottom: 1px solid var(--color-gray-light);
+  transition: background-color 0.2s ease;
 }
 
-.empresa-section-buttons {
-  display: flex;
-  gap: var(--spacing-md);
-  margin-top: var(--spacing-md);
-  padding-top: var(--spacing-md);
-  border-top: 1px solid var(--color-gray-light);
+.empresas-table tbody tr:hover {
+  background-color: var(--color-gray-light);
 }
 
-.btn-toggle-section {
+.empresas-table td {
+  padding: var(--spacing-md);
+  font-size: 0.9rem;
+  color: var(--color-text);
+}
+
+.empresa-row {
+  cursor: default;
+}
+
+.empresa-nome {
   display: flex;
   align-items: center;
+  gap: var(--spacing-sm);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.empresa-nome svg {
+  color: var(--color-secondary);
+}
+
+.table-actions {
+  display: flex;
   gap: var(--spacing-xs);
+}
+
+.table-toggle-buttons {
+  display: flex;
+  gap: var(--spacing-sm);
+  flex-wrap: wrap;
+}
+
+.btn-toggle-small {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   background: var(--color-white);
   border: 1px solid var(--color-gray-medium);
   color: var(--color-text);
-  padding: var(--spacing-sm) var(--spacing-md);
-  border-radius: 8px;
+  padding: 6px 12px;
+  border-radius: 6px;
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   font-weight: 500;
   transition: all 0.2s ease;
+  white-space: nowrap;
 }
 
-.btn-toggle-section:hover {
+.btn-toggle-small:hover {
   background-color: var(--color-gray-light);
   border-color: var(--color-secondary);
   color: var(--color-secondary);
+}
+
+.empresa-details-row {
+  background-color: var(--color-gray-light);
+}
+
+.empresa-details-row td {
+  padding: 0;
+  border: none;
+}
+
+.empresa-details-content {
+  padding: var(--spacing-md);
+  animation: slideDown 0.3s ease-out;
 }
 
 .empresa-details {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-lg);
-  margin-top: var(--spacing-md);
 }
 
 .contatos-section,
