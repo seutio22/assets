@@ -16,6 +16,8 @@ const ContatoForm = ({ contatoId, empresaId, onSuccess, onCancel }: ContatoFormP
     email: '',
     telefone: '',
     cargo: '',
+    dataNascimento: '',
+    ativo: true,
     observacoes: ''
   })
   const [loading, setLoading] = useState(false)
@@ -37,6 +39,8 @@ const ContatoForm = ({ contatoId, empresaId, onSuccess, onCancel }: ContatoFormP
         email: contato.email || '',
         telefone: contato.telefone || '',
         cargo: contato.cargo || '',
+        dataNascimento: contato.dataNascimento ? new Date(contato.dataNascimento).toISOString().split('T')[0] : '',
+        ativo: contato.ativo !== undefined ? contato.ativo : true,
         observacoes: contato.observacoes || ''
       })
     } catch (err: any) {
@@ -44,9 +48,14 @@ const ContatoForm = ({ contatoId, empresaId, onSuccess, onCancel }: ContatoFormP
     }
   }
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target
-    setFormData(prev => ({ ...prev, [name]: value }))
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value, type } = e.target
+    if (type === 'checkbox') {
+      const checked = (e.target as HTMLInputElement).checked
+      setFormData(prev => ({ ...prev, [name]: checked }))
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }))
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -67,6 +76,8 @@ const ContatoForm = ({ contatoId, empresaId, onSuccess, onCancel }: ContatoFormP
         email: formData.email || undefined,
         telefone: formData.telefone || undefined,
         cargo: formData.cargo || undefined,
+        dataNascimento: formData.dataNascimento || undefined,
+        ativo: formData.ativo,
         observacoes: formData.observacoes || undefined
       }
 
@@ -155,6 +166,40 @@ const ContatoForm = ({ contatoId, empresaId, onSuccess, onCancel }: ContatoFormP
           placeholder="Ex: Gerente, Diretor"
           disabled={loading}
         />
+      </div>
+
+      <div className="form-row">
+        <div className="form-group">
+          <label htmlFor="dataNascimento" className="label">
+            Data de Nascimento
+          </label>
+          <input
+            id="dataNascimento"
+            name="dataNascimento"
+            type="date"
+            className="input"
+            value={formData.dataNascimento}
+            onChange={handleChange}
+            disabled={loading}
+          />
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="ativo" className="label">
+            Status
+          </label>
+          <select
+            id="ativo"
+            name="ativo"
+            className="input"
+            value={formData.ativo ? 'true' : 'false'}
+            onChange={(e) => setFormData(prev => ({ ...prev, ativo: e.target.value === 'true' }))}
+            disabled={loading}
+          >
+            <option value="true">Ativo</option>
+            <option value="false">Inativo</option>
+          </select>
+        </div>
       </div>
 
       <div className="form-group">

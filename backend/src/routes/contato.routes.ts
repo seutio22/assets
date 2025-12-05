@@ -12,6 +12,8 @@ const contatoSchema = z.object({
   email: z.string().email('Email inválido').optional().or(z.literal('')),
   telefone: z.string().optional(),
   cargo: z.string().optional(),
+  dataNascimento: z.string().optional(),
+  ativo: z.boolean().optional(),
   observacoes: z.string().optional()
 });
 
@@ -81,11 +83,26 @@ router.post('/', async (req: AuthRequest, res) => {
       return res.status(404).json({ error: 'Empresa não encontrada' });
     }
 
+    const createData: any = {
+      empresaId: data.empresaId,
+      nome: data.nome,
+      email: data.email || null,
+      telefone: data.telefone || null,
+      cargo: data.cargo || null,
+      observacoes: data.observacoes || null,
+      tenantId: req.tenantId!
+    };
+
+    if (data.dataNascimento && data.dataNascimento !== '') {
+      createData.dataNascimento = new Date(data.dataNascimento);
+    }
+
+    if (data.ativo !== undefined) {
+      createData.ativo = data.ativo;
+    }
+
     const contato = await prisma.contato.create({
-      data: {
-        ...data,
-        tenantId: req.tenantId!
-      } as any
+      data: createData
     });
 
     res.status(201).json(contato);
@@ -115,9 +132,27 @@ router.put('/:id', async (req: AuthRequest, res) => {
       return res.status(404).json({ error: 'Contato não encontrado' });
     }
 
+    const updateData: any = {
+      nome: data.nome,
+      email: data.email || null,
+      telefone: data.telefone || null,
+      cargo: data.cargo || null,
+      observacoes: data.observacoes || null
+    };
+
+    if (data.dataNascimento !== undefined) {
+      updateData.dataNascimento = data.dataNascimento && data.dataNascimento !== '' 
+        ? new Date(data.dataNascimento) 
+        : null;
+    }
+
+    if (data.ativo !== undefined) {
+      updateData.ativo = data.ativo;
+    }
+
     const contato = await prisma.contato.update({
       where: { id },
-      data
+      data: updateData
     });
 
     res.json(contato);

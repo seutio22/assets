@@ -31,6 +31,8 @@ interface Contato {
   email?: string
   telefone?: string
   cargo?: string
+  dataNascimento?: string
+  ativo?: boolean
   observacoes?: string
 }
 
@@ -484,6 +486,8 @@ const GrupoEconomicoDetalhes = () => {
                                           <th>Email</th>
                                           <th>Telefone</th>
                                           <th>Cargo</th>
+                                          <th>Data de Nascimento</th>
+                                          <th>Status</th>
                                           <th>Ações</th>
                                         </tr>
                                       </thead>
@@ -494,6 +498,21 @@ const GrupoEconomicoDetalhes = () => {
                                             <td>{contato.email || '-'}</td>
                                             <td>{contato.telefone || '-'}</td>
                                             <td>{contato.cargo || '-'}</td>
+                                            <td>{contato.dataNascimento ? formatDate(contato.dataNascimento) : '-'}</td>
+                                            <td>
+                                              <span 
+                                                style={{
+                                                  padding: '4px 8px',
+                                                  borderRadius: '12px',
+                                                  fontSize: '0.75rem',
+                                                  fontWeight: 500,
+                                                  backgroundColor: contato.ativo !== false ? '#3d9b8e' : '#999',
+                                                  color: '#fff'
+                                                }}
+                                              >
+                                                {contato.ativo !== false ? 'Ativo' : 'Inativo'}
+                                              </span>
+                                            </td>
                                             <td>
                                               <div className="action-buttons">
                                                 <button 
