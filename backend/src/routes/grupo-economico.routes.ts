@@ -34,31 +34,39 @@ router.get('/', async (req: AuthRequest, res) => {
       where.name = { contains: (search as string).trim() };
     }
 
-    console.log('Buscando grupos econômicos com where:', JSON.stringify(where, null, 2));
-    console.log('Tenant ID:', req.tenantId);
+    // Logs removidos em produção para melhor performance
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Buscando grupos econômicos com where:', JSON.stringify(where, null, 2));
+      console.log('Tenant ID:', req.tenantId);
+    }
     
     try {
+      // Otimizar: buscar grupos sem empresas primeiro (mais rápido)
       const [data, total] = await Promise.all([
-      prisma.grupoEconomico.findMany({
-        where,
-        skip,
-        take: limitNum,
-        include: {
-          empresas: {
-            select: {
-              id: true,
-              cnpj: true,
-              razaoSocial: true,
-              dataCadastro: true
+        prisma.grupoEconomico.findMany({
+          where,
+          skip,
+          take: limitNum,
+          select: {
+            id: true,
+            name: true,
+            tenantId: true,
+            createdAt: true,
+            updatedAt: true,
+            _count: {
+              select: {
+                empresas: true
+              }
             }
-          }
-        },
-        orderBy: { createdAt: 'desc' }
-      }),
-      prisma.grupoEconomico.count({ where })
-    ]);
+          },
+          orderBy: { createdAt: 'desc' }
+        }),
+        prisma.grupoEconomico.count({ where })
+      ]);
     
-    console.log(`Encontrados ${data.length} grupos econômicos`);
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`Encontrados ${data.length} grupos econômicos`);
+    }
 
       res.json({
         data,

@@ -40,15 +40,28 @@ router.get('/', async (req: AuthRequest, res) => {
     }
 
     try {
+      // Otimizar: usar select em vez de incluir todos os campos
       const [data, total] = await Promise.all([
-      prisma.fornecedor.findMany({
-        where,
-        skip,
-        take: limitNum,
-        orderBy: { createdAt: 'desc' }
-      }),
-      prisma.fornecedor.count({ where })
-    ]);
+        prisma.fornecedor.findMany({
+          where,
+          skip,
+          take: limitNum,
+          select: {
+            id: true,
+            tenantId: true,
+            tipo: true,
+            cnpj: true,
+            registroANS: true,
+            razaoSocial: true,
+            nomeFantasia: true,
+            situacaoOperadora: true,
+            createdAt: true,
+            updatedAt: true
+          },
+          orderBy: { createdAt: 'desc' }
+        }),
+        prisma.fornecedor.count({ where })
+      ]);
 
       res.json({
         data,

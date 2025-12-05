@@ -120,6 +120,7 @@ model GrupoEconomico {
   empresas Empresa[]
 
   @@index([tenantId])
+  @@index([name]) // Índice para busca
   @@map("grupos_economicos")
 }
 

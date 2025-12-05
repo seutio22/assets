@@ -45,23 +45,41 @@ router.get('/', async (req: AuthRequest, res) => {
     }
 
     try {
-      const [data, total] = await Promise.all([
-      prisma.empresa.findMany({
-        where,
-        skip,
-        take: limitNum,
-        include: {
-          grupoEconomico: {
-            select: {
-              id: true,
-              name: true
-            }
-          }
-        },
-        orderBy: { createdAt: 'desc' }
-      }),
-      prisma.empresa.count({ where })
-    ]);
+      // Otimizar: buscar empresas e grupos em paralelo
+      const [empresas, total] = await Promise.all([
+        prisma.empresa.findMany({
+          where,
+          skip,
+          take: limitNum,
+          select: {
+            id: true,
+            tenantId: true,
+            grupoEconomicoId: true,
+            cnpj: true,
+            razaoSocial: true,
+            dataCadastro: true,
+            createdAt: true,
+            updatedAt: true
+          },
+          orderBy: { createdAt: 'desc' }
+        }),
+        prisma.empresa.count({ where })
+      ]);
+
+      // Buscar grupos econômicos separadamente (mais eficiente)
+      const grupoIds = [...new Set(empresas.map(e => e.grupoEconomicoId).filter(Boolean))];
+      const grupos = grupoIds.length > 0
+        ? await prisma.grupoEconomico.findMany({
+            where: { id: { in: grupoIds }, tenantId: req.tenantId },
+            select: { id: true, name: true }
+          })
+        : [];
+
+      const gruposMap = new Map(grupos.map(g => [g.id, g]));
+      const data = empresas.map(empresa => ({
+        ...empresa,
+        grupoEconomico: gruposMap.get(empresa.grupoEconomicoId) || null
+      }));
 
       res.json({
         data,
