@@ -81,12 +81,13 @@ export const authenticateToken = async (
         req.userId = user.id;
         req.tenantId = tenant.id;
         req.role = user.role;
-    } catch (dbError: any) {
-      console.error('Erro ao verificar usuário/tenant:', dbError);
-      return res.status(500).json({ 
-        error: 'Erro ao verificar autenticação',
-        details: dbError.message 
-      });
+      } catch (dbError: any) {
+        console.error('Erro ao verificar usuário/tenant:', dbError);
+        return res.status(500).json({ 
+          error: 'Erro ao verificar autenticação',
+          details: dbError.message 
+        });
+      }
     }
 
     next();
