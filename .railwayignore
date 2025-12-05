@@ -1,0 +1,6 @@
+# Ignorar Dockerfiles para forçar uso de Nixpacks
+**/Dockerfile
+**/Dockerfile.*
+backend/Dockerfile
+frontend/Dockerfile
+
