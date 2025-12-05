@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { api } from '../services/api'
-import { Plus, Edit, Trash2, Building2, ArrowLeft, User, MapPin } from 'lucide-react'
+import { Plus, Edit, Trash2, Building2, ArrowLeft, User, MapPin, ChevronDown, ChevronUp } from 'lucide-react'
 import Modal from '../components/Modal'
 import EmpresaForm from '../components/EmpresaForm'
 import ContatoForm from '../components/ContatoForm'
@@ -58,6 +58,20 @@ const GrupoEconomicoDetalhes = () => {
   const [editingContatoId, setEditingContatoId] = useState<string | null>(null)
   const [editingEnderecoId, setEditingEnderecoId] = useState<string | null>(null)
   const [selectedEmpresaId, setSelectedEmpresaId] = useState<string | null>(null)
+  
+  // Estado para controlar expansão de contatos e endereços por empresa
+  // Formato: { empresaId: { contatos: boolean, enderecos: boolean } }
+  const [expandedSections, setExpandedSections] = useState<Record<string, { contatos: boolean; enderecos: boolean }>>({})
+  
+  const toggleSection = (empresaId: string, section: 'contatos' | 'enderecos') => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [empresaId]: {
+        ...prev[empresaId],
+        [section]: !prev[empresaId]?.[section]
+      }
+    }))
+  }
 
   useEffect(() => {
     if (id) {
@@ -275,8 +289,18 @@ const GrupoEconomicoDetalhes = () => {
                 <div className="empresa-details">
                   <div className="contatos-section">
                     <div className="section-header">
-                      <User size={20} />
-                      <h4>Contatos</h4>
+                      <button
+                        className="section-toggle"
+                        onClick={() => toggleSection(empresa.id, 'contatos')}
+                      >
+                        <User size={20} />
+                        <h4>Contatos {empresa.contatos.length > 0 && `(${empresa.contatos.length})`}</h4>
+                        {expandedSections[empresa.id]?.contatos ? (
+                          <ChevronUp size={20} />
+                        ) : (
+                          <ChevronDown size={20} />
+                        )}
+                      </button>
                       <button 
                         className="btn-link-small"
                         onClick={() => openNewContato(empresa.id)}
@@ -285,53 +309,67 @@ const GrupoEconomicoDetalhes = () => {
                         Adicionar
                       </button>
                     </div>
-                    {empresa.contatos.length === 0 ? (
-                      <p className="empty-subsection">Nenhum contato cadastrado</p>
-                    ) : (
-                      <table className="sub-table">
-                        <thead>
-                          <tr>
-                            <th>Nome</th>
-                            <th>Email</th>
-                            <th>Telefone</th>
-                            <th>Cargo</th>
-                            <th>Ações</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {empresa.contatos.map((contato) => (
-                            <tr key={contato.id}>
-                              <td>{contato.nome}</td>
-                              <td>{contato.email || '-'}</td>
-                              <td>{contato.telefone || '-'}</td>
-                              <td>{contato.cargo || '-'}</td>
-                              <td>
-                                <div className="action-buttons">
-                                  <button 
-                                    className="btn-icon-small"
-                                    onClick={() => openEditContato(contato.id, empresa.id)}
-                                  >
-                                    <Edit size={14} />
-                                  </button>
-                                  <button 
-                                    className="btn-icon-small"
-                                    onClick={() => handleDeleteContato(contato.id)}
-                                  >
-                                    <Trash2 size={14} />
-                                  </button>
-                                </div>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                    {expandedSections[empresa.id]?.contatos && (
+                      <div className="section-content">
+                        {empresa.contatos.length === 0 ? (
+                          <p className="empty-subsection">Nenhum contato cadastrado</p>
+                        ) : (
+                          <table className="sub-table">
+                            <thead>
+                              <tr>
+                                <th>Nome</th>
+                                <th>Email</th>
+                                <th>Telefone</th>
+                                <th>Cargo</th>
+                                <th>Ações</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {empresa.contatos.map((contato) => (
+                                <tr key={contato.id}>
+                                  <td>{contato.nome}</td>
+                                  <td>{contato.email || '-'}</td>
+                                  <td>{contato.telefone || '-'}</td>
+                                  <td>{contato.cargo || '-'}</td>
+                                  <td>
+                                    <div className="action-buttons">
+                                      <button 
+                                        className="btn-icon-small"
+                                        onClick={() => openEditContato(contato.id, empresa.id)}
+                                      >
+                                        <Edit size={14} />
+                                      </button>
+                                      <button 
+                                        className="btn-icon-small"
+                                        onClick={() => handleDeleteContato(contato.id)}
+                                      >
+                                        <Trash2 size={14} />
+                                      </button>
+                                    </div>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        )}
+                      </div>
                     )}
                   </div>
 
                   <div className="enderecos-section">
                     <div className="section-header">
-                      <MapPin size={20} />
-                      <h4>Endereços</h4>
+                      <button
+                        className="section-toggle"
+                        onClick={() => toggleSection(empresa.id, 'enderecos')}
+                      >
+                        <MapPin size={20} />
+                        <h4>Endereços {empresa.enderecos.length > 0 && `(${empresa.enderecos.length})`}</h4>
+                        {expandedSections[empresa.id]?.enderecos ? (
+                          <ChevronUp size={20} />
+                        ) : (
+                          <ChevronDown size={20} />
+                        )}
+                      </button>
                       <button 
                         className="btn-link-small"
                         onClick={() => openNewEndereco(empresa.id)}
@@ -340,53 +378,57 @@ const GrupoEconomicoDetalhes = () => {
                         Adicionar
                       </button>
                     </div>
-                    {empresa.enderecos.length === 0 ? (
-                      <p className="empty-subsection">Nenhum endereço cadastrado</p>
-                    ) : (
-                      <table className="sub-table">
-                        <thead>
-                          <tr>
-                            <th>Tipo</th>
-                            <th>Endereço</th>
-                            <th>Cidade/UF</th>
-                            <th>CEP</th>
-                            <th>Ações</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {empresa.enderecos.map((endereco) => (
-                            <tr key={endereco.id}>
-                              <td>
-                                <span className="tipo-badge">{endereco.tipo}</span>
-                              </td>
-                              <td>
-                                {endereco.logradouro}
-                                {endereco.numero && `, ${endereco.numero}`}
-                                {endereco.complemento && ` - ${endereco.complemento}`}
-                                {endereco.bairro && `, ${endereco.bairro}`}
-                              </td>
-                              <td>{endereco.cidade}/{endereco.estado}</td>
-                              <td>{endereco.cep || '-'}</td>
-                              <td>
-                                <div className="action-buttons">
-                                  <button 
-                                    className="btn-icon-small"
-                                    onClick={() => openEditEndereco(endereco.id, empresa.id)}
-                                  >
-                                    <Edit size={14} />
-                                  </button>
-                                  <button 
-                                    className="btn-icon-small"
-                                    onClick={() => handleDeleteEndereco(endereco.id)}
-                                  >
-                                    <Trash2 size={14} />
-                                  </button>
-                                </div>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                    {expandedSections[empresa.id]?.enderecos && (
+                      <div className="section-content">
+                        {empresa.enderecos.length === 0 ? (
+                          <p className="empty-subsection">Nenhum endereço cadastrado</p>
+                        ) : (
+                          <table className="sub-table">
+                            <thead>
+                              <tr>
+                                <th>Tipo</th>
+                                <th>Endereço</th>
+                                <th>Cidade/UF</th>
+                                <th>CEP</th>
+                                <th>Ações</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {empresa.enderecos.map((endereco) => (
+                                <tr key={endereco.id}>
+                                  <td>
+                                    <span className="tipo-badge">{endereco.tipo}</span>
+                                  </td>
+                                  <td>
+                                    {endereco.logradouro}
+                                    {endereco.numero && `, ${endereco.numero}`}
+                                    {endereco.complemento && ` - ${endereco.complemento}`}
+                                    {endereco.bairro && `, ${endereco.bairro}`}
+                                  </td>
+                                  <td>{endereco.cidade}/{endereco.estado}</td>
+                                  <td>{endereco.cep || '-'}</td>
+                                  <td>
+                                    <div className="action-buttons">
+                                      <button 
+                                        className="btn-icon-small"
+                                        onClick={() => openEditEndereco(endereco.id, empresa.id)}
+                                      >
+                                        <Edit size={14} />
+                                      </button>
+                                      <button 
+                                        className="btn-icon-small"
+                                        onClick={() => handleDeleteEndereco(endereco.id)}
+                                      >
+                                        <Trash2 size={14} />
+                                      </button>
+                                    </div>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        )}
+                      </div>
                     )}
                   </div>
                 </div>
