@@ -3,10 +3,8 @@ FROM node:20-alpine
 WORKDIR /app
 
 # Copiar package.json primeiro (para cache de dependências)
-COPY package.json package-lock.json* ./
-
-# Debug: verificar se package.json foi copiado
-RUN ls -la package.json || (echo "ERRO: package.json não encontrado!" && ls -la && exit 1)
+# Se o root directory for frontend/, os arquivos já estarão no contexto correto
+COPY package*.json ./
 
 # Instalar dependências
 RUN npm install
