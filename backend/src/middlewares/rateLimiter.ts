@@ -6,9 +6,13 @@ export const rateLimiter = rateLimit({
   message: 'Muitas requisições deste IP, tente novamente mais tarde.',
   standardHeaders: true,
   legacyHeaders: false,
+  // Desabilitar validação de X-Forwarded-For já que trust proxy está configurado
+  validate: {
+    trustProxy: false, // Não validar, confiar no Express trust proxy
+  },
   skip: (req) => {
     // Pular rate limit para requisições de health check
-    return req.path === '/health'
+    return req.path === '/health' || req.path === '/health/db'
   }
 });
 
