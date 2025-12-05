@@ -57,10 +57,7 @@ app.set('trust proxy', 1); // Confiar no primeiro proxy (Railway)
 // Middlewares - CORS configurado para aceitar TUDO
 // Nota: No Vercel, o OPTIONS é tratado no handler api/index.ts antes de chegar aqui
 app.use(cors({
-  origin: function (origin, callback) {
-    // Aceitar qualquer origem
-    callback(null, true);
-  },
+  origin: '*', // Aceitar qualquer origem
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
   credentials: false
@@ -68,12 +65,7 @@ app.use(cors({
 
 // Middleware adicional para garantir CORS em todas as respostas
 app.use((req, res, next) => {
-  const origin = req.headers.origin;
-  if (origin) {
-    res.header('Access-Control-Allow-Origin', origin);
-  } else {
-    res.header('Access-Control-Allow-Origin', '*');
-  }
+  res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin');
   
