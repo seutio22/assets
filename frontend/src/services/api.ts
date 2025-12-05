@@ -20,7 +20,7 @@ export const api = axios.create({
   headers: {
     'Content-Type': 'application/json'
   },
-  timeout: 10000, // 10 segundos de timeout (reduzido para melhor UX)
+  timeout: 7000, // 7 segundos de timeout (otimizado para melhor UX)
   timeoutErrorMessage: 'A requisição demorou muito para responder. Verifique sua conexão.'
 })
 

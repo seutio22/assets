@@ -76,10 +76,20 @@ const Dados = () => {
 
   const fetchModulos = async () => {
     try {
-      const response = await api.get('/modulos')
-      setModulos(response.data.data || [])
+      // Usar cache estrutural para módulos
+      const { fetchModulos: fetchModulosCached } = await import('../services/structuralData')
+      const modulosCached = await fetchModulosCached()
+      setModulos(modulosCached as any)
     } catch (error) {
       console.error('Erro ao carregar módulos:', error)
+      // Fallback: buscar direto da API se cache falhar
+      try {
+        const response = await api.get('/modulos')
+        setModulos(response.data.data || [])
+      } catch (fallbackError) {
+        console.error('Erro ao carregar módulos (fallback):', fallbackError)
+        setModulos([])
+      }
     } finally {
       setLoading(false)
     }
@@ -87,19 +97,39 @@ const Dados = () => {
 
   const fetchConfiguracoes = async (moduloId: string) => {
     try {
-      const response = await api.get(`/configuracoes-campos?moduloId=${moduloId}`)
-      setConfiguracoes(response.data.data || [])
+      // Usar cache estrutural para configurações
+      const { fetchConfiguracoes: fetchConfiguracoesCached } = await import('../services/structuralData')
+      const configsCached = await fetchConfiguracoesCached(moduloId)
+      setConfiguracoes(configsCached as any)
     } catch (error) {
       console.error('Erro ao carregar configurações:', error)
+      // Fallback: buscar direto da API
+      try {
+        const response = await api.get(`/configuracoes-campos?moduloId=${moduloId}`)
+        setConfiguracoes(response.data.data || [])
+      } catch (fallbackError) {
+        console.error('Erro ao carregar configurações (fallback):', fallbackError)
+        setConfiguracoes([])
+      }
     }
   }
 
   const fetchDados = async (configuracaoCampoId: string) => {
     try {
-      const response = await api.get(`/dados-dinamicos?configuracaoCampoId=${configuracaoCampoId}`)
-      setDados(response.data.data || [])
+      // Usar cache estrutural para dados dinâmicos
+      const { fetchDadosDinamicos } = await import('../services/structuralData')
+      const dadosCached = await fetchDadosDinamicos(configuracaoCampoId)
+      setDados(dadosCached as any)
     } catch (error) {
       console.error('Erro ao carregar dados:', error)
+      // Fallback: buscar direto da API
+      try {
+        const response = await api.get(`/dados-dinamicos?configuracaoCampoId=${configuracaoCampoId}`)
+        setDados(response.data.data || [])
+      } catch (fallbackError) {
+        console.error('Erro ao carregar dados (fallback):', fallbackError)
+        setDados([])
+      }
     }
   }
 

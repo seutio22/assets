@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { api } from '../services/api'
-import { Plus, Search, Eye, Edit } from 'lucide-react'
+import { Plus, Search, Eye, Edit, ChevronLeft, ChevronRight } from 'lucide-react'
+import { useDebounce } from '../hooks/useDebounce'
 import './Implantacoes.css'
 
 interface Implantacao {
@@ -38,35 +39,44 @@ const Implantacoes = () => {
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('')
+  const [page, setPage] = useState(1)
+  const [limit] = useState(25) // Reduzido de 100 para 25
+  const [total, setTotal] = useState(0)
+  const [totalPages, setTotalPages] = useState(0)
+
+  // Debounce da busca
+  const debouncedSearch = useDebounce(search, 500)
+
+  useEffect(() => {
+    setPage(1) // Resetar página quando busca ou filtro mudar
+  }, [debouncedSearch, statusFilter])
 
   useEffect(() => {
     fetchImplantacoes()
-  }, [statusFilter])
+  }, [debouncedSearch, statusFilter, page])
 
   const fetchImplantacoes = async () => {
     try {
       setLoading(true)
       const params = new URLSearchParams()
       if (statusFilter) params.append('status', statusFilter)
-      params.append('limit', '100')
+      if (debouncedSearch.trim()) params.append('search', debouncedSearch.trim())
+      params.append('page', page.toString())
+      params.append('limit', limit.toString())
       
       const response = await api.get(`/implantacoes?${params.toString()}`)
       const implantacoesData = response.data.data || []
+      const pagination = response.data.pagination || {}
       
-      // Filtrar por busca local se necessário
-      let filtered = implantacoesData
-      if (search.trim()) {
-        filtered = implantacoesData.filter((i: Implantacao) => 
-          i.apolice.numero.toLowerCase().includes(search.toLowerCase()) ||
-          i.apolice.empresa.razaoSocial.toLowerCase().includes(search.toLowerCase()) ||
-          i.chamado?.numero.toLowerCase().includes(search.toLowerCase())
-        )
-      }
-      
-      setImplantacoes(filtered)
+      setImplantacoes(implantacoesData)
+      setTotal(pagination.total || 0)
+      setTotalPages(pagination.totalPages || 0)
     } catch (error: any) {
       console.error('Erro ao carregar implantações:', error)
       alert(`Erro ao carregar implantações: ${error.response?.data?.error || error.message}`)
+      setImplantacoes([])
+      setTotal(0)
+      setTotalPages(0)
     } finally {
       setLoading(false)
     }
@@ -109,7 +119,6 @@ const Implantacoes = () => {
             placeholder="Buscar por apólice, cliente ou chamado..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && fetchImplantacoes()}
           />
         </div>
         <select
@@ -124,6 +133,20 @@ const Implantacoes = () => {
           <option value="CANCELADA">Cancelada</option>
         </select>
       </div>
+
+      {!loading && total > 0 && (
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center', 
+          marginBottom: '16px',
+          padding: '0 8px'
+        }}>
+          <span style={{ color: '#666', fontSize: '14px' }}>
+            Mostrando {implantacoes.length} de {total} implantações
+          </span>
+        </div>
+      )}
 
       {loading ? (
         <div className="loading">Carregando...</div>
@@ -192,6 +215,51 @@ const Implantacoes = () => {
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {!loading && totalPages > 1 && (
+        <div style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          gap: '8px',
+          marginTop: '24px',
+          padding: '16px'
+        }}>
+          <button
+            className="btn"
+            onClick={() => setPage(prev => Math.max(1, prev - 1))}
+            disabled={page === 1}
+            style={{
+              opacity: page === 1 ? 0.5 : 1,
+              cursor: page === 1 ? 'not-allowed' : 'pointer'
+            }}
+          >
+            <ChevronLeft size={18} />
+            Anterior
+          </button>
+          
+          <span style={{ 
+            padding: '8px 16px',
+            fontSize: '14px',
+            color: '#333'
+          }}>
+            Página {page} de {totalPages}
+          </span>
+          
+          <button
+            className="btn"
+            onClick={() => setPage(prev => Math.min(totalPages, prev + 1))}
+            disabled={page === totalPages}
+            style={{
+              opacity: page === totalPages ? 0.5 : 1,
+              cursor: page === totalPages ? 'not-allowed' : 'pointer'
+            }}
+          >
+            Próxima
+            <ChevronRight size={18} />
+          </button>
         </div>
       )}
     </div>

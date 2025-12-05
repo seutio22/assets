@@ -10,7 +10,10 @@ router.use(authenticateToken);
 // GET /implantacoes
 router.get('/', async (req: AuthRequest, res) => {
   try {
-    const { apoliceId, chamadoId, status, limit = '100' } = req.query;
+    const { apoliceId, chamadoId, status, search, page = '1', limit = '25' } = req.query;
+    const pageNum = parseInt(page as string);
+    const limitNum = parseInt(limit as string);
+    const skip = (pageNum - 1) * limitNum;
 
     if (!req.tenantId) {
       return res.status(401).json({ error: 'Tenant ID não encontrado' });
@@ -32,55 +35,114 @@ router.get('/', async (req: AuthRequest, res) => {
       where.status = status as string;
     }
 
+    // Busca por texto - busca em apólices e empresas relacionadas
+    if (search && (search as string).trim() !== '') {
+      const searchTerm = (search as string).trim();
+      
+      // Buscar apólices que correspondem à busca
+      const apolicesEncontradas = await prisma.apolice.findMany({
+        where: {
+          tenantId: req.tenantId,
+          OR: [
+            { numero: { contains: searchTerm } },
+            { empresa: { 
+              razaoSocial: { contains: searchTerm } 
+            } }
+          ]
+        },
+        select: { id: true },
+        take: 100
+      });
+
+      const apoliceIds = apolicesEncontradas.map(a => a.id);
+
+      // Buscar chamados que correspondem à busca
+      const chamadosEncontrados = await prisma.chamadoImplantacao.findMany({
+        where: {
+          tenantId: req.tenantId,
+          numero: { contains: searchTerm }
+        },
+        select: { id: true },
+        take: 100
+      });
+
+      const chamadoIds = chamadosEncontrados.map(c => c.id);
+
+      // Adicionar condições de busca
+      where.OR = [];
+
+      if (apoliceIds.length > 0) {
+        where.OR.push({ apoliceId: { in: apoliceIds } });
+      }
+
+      if (chamadoIds.length > 0) {
+        where.OR.push({ chamadoId: { in: chamadoIds } });
+      }
+    }
+
+    // Buscar total para paginação
+    const total = await prisma.implantacao.count({ where });
+
+    // Otimizar: usar select em vez de include para reduzir dados
     const implantacoes = await prisma.implantacao.findMany({
       where,
-      include: {
+      skip,
+      take: limitNum,
+      select: {
+        id: true,
+        status: true,
+        percentualConclusao: true,
+        dataInicio: true,
+        dataPrevistaFim: true,
+        dataFim: true,
+        createdAt: true,
+        apoliceId: true,
+        chamadoId: true,
         apolice: {
-          include: {
-            empresa: true
-          }
-        },
-        chamado: true,
-        solicitacao: {
-          include: {
-            solicitante: {
+          select: {
+            id: true,
+            numero: true,
+            empresa: {
               select: {
                 id: true,
-                name: true,
-                email: true
+                razaoSocial: true,
+                cnpj: true
               }
             }
           }
         },
-        demanda: {
-          include: {
-            placement: {
-              include: {
-                solicitacao: true
-              }
-            }
+        chamado: {
+          select: {
+            id: true,
+            numero: true,
+            titulo: true
           }
         },
         cronogramaItens: {
+          select: {
+            id: true,
+            titulo: true,
+            status: true,
+            ordem: true
+          },
           orderBy: {
             ordem: 'asc'
-          }
-        },
-        _count: {
-          select: {
-            historico: true
           }
         }
       },
       orderBy: {
         createdAt: 'desc'
-      },
-      take: parseInt(limit as string)
+      }
     });
 
     res.json({
       data: implantacoes,
-      total: implantacoes.length
+      pagination: {
+        page: pageNum,
+        limit: limitNum,
+        total,
+        totalPages: Math.ceil(total / limitNum)
+      }
     });
   } catch (error) {
     console.error('Erro ao listar implantações:', error);

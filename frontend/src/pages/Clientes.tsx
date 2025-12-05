@@ -5,6 +5,7 @@ import { Plus, Search, Edit, Trash2, Building2, Eye } from 'lucide-react'
 import Modal from '../components/Modal'
 import GrupoEconomicoForm from '../components/GrupoEconomicoForm'
 import EmpresaForm from '../components/EmpresaForm'
+import { useDebounce } from '../hooks/useDebounce'
 import './Clientes.css'
 
 interface GrupoEconomico {
@@ -35,17 +36,21 @@ const Clientes = () => {
   const [editingEmpresaId, setEditingEmpresaId] = useState<string | null>(null)
   const [selectedGrupoId, setSelectedGrupoId] = useState<string | null>(null)
 
+  // Debounce da busca
+  const debouncedSearch = useDebounce(search, 500)
+
   useEffect(() => {
     fetchGrupos()
-  }, [search])
+  }, [debouncedSearch])
 
   const fetchGrupos = async () => {
     try {
       setLoading(true)
-      const response = await api.get(`/grupos-economicos?search=${search}`)
+      const response = await api.get(`/grupos-economicos?search=${debouncedSearch}`)
       setGrupos(response.data.data || [])
     } catch (error) {
       console.error('Erro ao carregar clientes:', error)
+      setGrupos([])
     } finally {
       setLoading(false)
     }
