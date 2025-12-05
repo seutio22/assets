@@ -22,9 +22,31 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        // Usar rota otimizada que retorna todas as estatísticas em uma única requisição
-        const response = await api.get('/dashboard/stats')
-        setStats(response.data.data)
+        // Tentar usar rota otimizada primeiro, se falhar usar rotas antigas
+        try {
+          const response = await api.get('/dashboard/stats')
+          setStats(response.data.data)
+        } catch (optimizedError: any) {
+          // Se a rota otimizada não existir (404), usar rotas antigas
+          if (optimizedError.response?.status === 404) {
+            console.log('Rota otimizada não disponível, usando rotas antigas')
+            const [gruposRes, empresasRes, fornecedoresRes, apolicesRes] = await Promise.all([
+              api.get('/grupos-economicos?limit=1'),
+              api.get('/empresas?limit=1'),
+              api.get('/fornecedores?limit=1'),
+              api.get('/apolices?limit=1&status=ATIVA')
+            ])
+
+            setStats({
+              clientes: empresasRes.data.pagination?.total || 0,
+              fornecedores: fornecedoresRes.data.pagination?.total || 0,
+              apolices: apolicesRes.data.pagination?.total || 0,
+              apolicesAtivas: apolicesRes.data.pagination?.total || 0
+            })
+          } else {
+            throw optimizedError
+          }
+        }
       } catch (error: any) {
         console.error('Erro ao carregar estatísticas:', error)
         // Em caso de erro, mostrar zeros mas não travar
