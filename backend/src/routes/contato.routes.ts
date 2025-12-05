@@ -24,21 +24,6 @@ router.get('/:id', async (req: AuthRequest, res) => {
   try {
     const { id } = req.params;
 
-    // Tentar aplicar migration se necessário
-    try {
-      await prisma.$executeRawUnsafe(`
-        ALTER TABLE "contatos" 
-        ADD COLUMN IF NOT EXISTS "dataNascimento" TIMESTAMP
-      `);
-      await prisma.$executeRawUnsafe(`
-        ALTER TABLE "contatos" 
-        ADD COLUMN IF NOT EXISTS "ativo" BOOLEAN DEFAULT true
-      `);
-    } catch (migrationError: any) {
-      // Ignorar erros de migration
-      console.log('Migration check:', migrationError.message);
-    }
-
     const contato = await prisma.contato.findFirst({
       where: {
         id,
@@ -67,26 +52,6 @@ router.get('/', async (req: AuthRequest, res) => {
 
     if (!empresaId) {
       return res.status(400).json({ error: 'empresaId é obrigatório' });
-    }
-
-    // Tentar aplicar migration se necessário
-    try {
-      await prisma.$executeRawUnsafe(`
-        ALTER TABLE "contatos" 
-        ADD COLUMN IF NOT EXISTS "dataNascimento" TIMESTAMP
-      `);
-      await prisma.$executeRawUnsafe(`
-        ALTER TABLE "contatos" 
-        ADD COLUMN IF NOT EXISTS "ativo" BOOLEAN DEFAULT true
-      `);
-      await prisma.$executeRawUnsafe(`
-        UPDATE "contatos" 
-        SET "ativo" = true 
-        WHERE "ativo" IS NULL
-      `);
-    } catch (migrationError: any) {
-      // Ignorar erros de migration (campos podem já existir)
-      console.log('Migration check:', migrationError.message);
     }
 
     const contatos = await prisma.contato.findMany({
