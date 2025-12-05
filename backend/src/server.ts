@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
+import compression from 'compression';
 import { authRoutes } from './routes/auth.routes';
 import { grupoEconomicoRoutes } from './routes/grupo-economico.routes';
 import { empresaRoutes } from './routes/empresa.routes';
@@ -79,6 +80,21 @@ app.use((req, res, next) => {
 // Helmet configurado para não bloquear CORS
 // Helmet desabilitado temporariamente para garantir CORS funciona
 // app.use(helmet());
+
+// Compressão HTTP - Reduz drasticamente o tamanho das respostas (60-80% menor)
+// Deve ser configurado ANTES do express.json para comprimir todas as respostas
+app.use(compression({
+  filter: (req, res) => {
+    // Comprimir todas as respostas JSON e texto
+    if (req.headers['x-no-compression']) {
+      return false;
+    }
+    return compression.filter(req, res);
+  },
+  level: 6, // Nível de compressão (0-9, 6 é um bom equilíbrio)
+  threshold: 1024, // Comprimir apenas respostas maiores que 1KB
+}));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
